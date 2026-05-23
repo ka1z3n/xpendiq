@@ -1,0 +1,195 @@
+package com.example.spendy.data.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.example.spendy.data.entity.TransactionEntity
+import com.example.spendy.data.entity.TransactionType
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TransactionDao {
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(txn: TransactionEntity): Long
+
+    @Update
+    suspend fun update(txn: TransactionEntity)
+
+    @Query("DELETE FROM transactions WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    suspend fun findById(id: Long): TransactionEntity?
+
+    @Query("SELECT * FROM transactions WHERE smsBodyHash = :hash LIMIT 1")
+    suspend fun findByHash(hash: String): TransactionEntity?
+
+    @Query("SELECT * FROM transactions")
+    suspend fun findAll(): List<TransactionEntity>
+
+    @Query("UPDATE transactions SET smsBodyHash = :newHash WHERE id = :id")
+    suspend fun updateHash(id: Long, newHash: String)
+
+    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC")
+    fun observeByType(type: TransactionType): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC LIMIT :limit")
+    fun observeRecent(type: TransactionType, limit: Int): Flow<List<TransactionEntity>>
+
+    /** Pass -1L as the sentinel when nothing should be excluded. */
+    @Query(
+        """
+        SELECT * FROM transactions
+        WHERE type = :type
+          AND categoryId != :excludeCategoryId
+        ORDER BY occurredAt DESC
+        """
+    )
+    fun observeByTypeExcludingCategory(
+        type: TransactionType,
+        excludeCategoryId: Long,
+    ): Flow<List<TransactionEntity>>
+
+    @Query(
+        """
+        SELECT * FROM transactions
+        WHERE type = :type
+          AND categoryId = :uncategorizedId
+        ORDER BY occurredAt DESC
+        """
+    )
+    fun observeUncategorized(type: TransactionType, uncategorizedId: Long): Flow<List<TransactionEntity>>
+
+    @Query(
+        """
+        SELECT COUNT(*) FROM transactions
+        WHERE type = :type
+          AND categoryId = :uncategorizedId
+        """
+    )
+    fun observeUncategorizedCount(type: TransactionType, uncategorizedId: Long): Flow<Int>
+
+    @Query(
+        """
+        UPDATE transactions
+        SET categoryId = :newCategoryId,
+            isUserEdited = 1,
+            updatedAt = :now
+        WHERE merchantNormalized = :merchantNormalized
+          AND type = :type
+        """
+    )
+    suspend fun recategorizeByMerchantAndType(
+        merchantNormalized: String,
+        type: TransactionType,
+        newCategoryId: Long,
+        now: Long,
+    ): Int
+
+    /**
+     * Cross-type variant: also updates the row's `type` to [newType]. Used when the user moves
+     * an Uncategorized transaction into a category of a different type (e.g. a DEBIT row into
+     * the Investment category).
+     */
+    @Query(
+        """
+        UPDATE transactions
+        SET categoryId = :newCategoryId,
+            type = :newType,
+            isUserEdited = 1,
+            updatedAt = :now
+        WHERE merchantNormalized = :merchantNormalized
+          AND type = :oldType
+        """
+    )
+    suspend fun recategorizeByMerchantWithTypeChange(
+        merchantNormalized: String,
+        oldType: TransactionType,
+        newType: TransactionType,
+        newCategoryId: Long,
+        now: Long,
+    ): Int
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId")
+    suspend fun countByCategory(categoryId: Long): Int
+
+    /**
+     * Used by seed migration to re-route existing transactions to a new/changed category
+     * when their merchantNormalized substring-matches a seed rule. Preserves user edits.
+     */
+    @Query(
+        """
+        UPDATE transactions
+        SET categoryId = :newCategoryId, updatedAt = :now
+        WHERE merchantNormalized LIKE '%' || :pattern || '%'
+          AND type = :type
+          AND isUserEdited = 0
+          AND categoryId != :newCategoryId
+        """
+    )
+    suspend fun applySeedRecategorizeByPattern(
+        pattern: String,
+        type: TransactionType,
+        newCategoryId: Long,
+        now: Long,
+    ): Int
+
+    @Query(
+        """
+        UPDATE transactions
+        SET categoryId = :newCategoryId, updatedAt = :now
+        WHERE categoryId = :oldCategoryId
+        """
+    )
+    suspend fun reassignCategory(oldCategoryId: Long, newCategoryId: Long, now: Long): Int
+
+    /** INR-only sum. Multi-currency totalling is deferred until we have FX rates. */
+    @Query(
+        """
+        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        WHERE type = :type
+          AND currency = 'INR'
+          AND occurredAt BETWEEN :startMillis AND :endMillis
+        """
+    )
+    fun observeTotal(type: TransactionType, startMillis: Long, endMillis: Long): Flow<Long>
+
+    /** Same as [observeTotal] but excludes a category id. Pass -1L for none. */
+    @Query(
+        """
+        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        WHERE type = :type
+          AND currency = 'INR'
+          AND occurredAt BETWEEN :startMillis AND :endMillis
+          AND categoryId != :excludeCategoryId
+        """
+    )
+    fun observeTotalExcludingCategory(
+        type: TransactionType,
+        startMillis: Long,
+        endMillis: Long,
+        excludeCategoryId: Long,
+    ): Flow<Long>
+
+    /** INR-only per-category totals; multi-currency rows are excluded. */
+    @Query(
+        """
+        SELECT categoryId AS categoryId, SUM(amountPaise) AS totalPaise
+        FROM transactions
+        WHERE type = :type
+          AND currency = 'INR'
+          AND occurredAt BETWEEN :startMillis AND :endMillis
+        GROUP BY categoryId
+        HAVING SUM(amountPaise) > 0
+        ORDER BY SUM(amountPaise) DESC
+        """
+    )
+    fun observeTotalsByCategory(
+        type: TransactionType,
+        startMillis: Long,
+        endMillis: Long,
+    ): Flow<List<CategoryTotal>>
+}

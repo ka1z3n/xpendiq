@@ -1,0 +1,50 @@
+# ── Gradle / build artifacts ───────────────────────────────
+.gradle/
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# ── Android Studio / IntelliJ ─────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ── Local config (machine-specific) ───────────────────────
+local.properties
+keystore.properties
+
+# ── Signing / secrets ─────────────────────────────────────
+*.jks
+*.keystore
+google-services.json
+release/
+
+# ── OS noise ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs / temp ───────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+
+# ── KSP / Kapt generated ──────────────────────────────────
+generated/
+
+# ── Personal sample data ──────────────────────────────────
+# The analysis scripts under samples/ are committed; the raw
+# personal SMS export, screenshots, and pulled SQLite DBs are not.
+/samples/sms.csv
+/samples/*.db
+/samples/*.db-shm
+/samples/*.db-wal
+/samples/*.jpeg
+/samples/*.jpg
+/samples/*.png
+
+# ── Claude Code local settings ────────────────────────────
+.claude/

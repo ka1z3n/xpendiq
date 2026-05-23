@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug-only overlay. The manifest-merger only includes this for `debug` builds, so the
+    test receiver below never ships in release.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+
+        <receiver
+            android:name=".sms.TestIngestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.spendy.TEST_INGEST" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
