@@ -25,9 +25,10 @@ class SmsParser(
         receivedAtMillis: Long,
         requireBankSender: Boolean = true,
     ): ParsedTransaction? {
-        if (SmsFilter.classify(sender, body, requireBankSender) != SmsFilter.Decision.PARSE) return null
+        val normalized = ParseUtil.normalizeBody(body)
+        if (SmsFilter.classify(sender, normalized, requireBankSender) != SmsFilter.Decision.PARSE) return null
         for (extractor in extractors) {
-            val result = extractor.match(sender, body, receivedAtMillis) ?: continue
+            val result = extractor.match(sender, normalized, receivedAtMillis) ?: continue
             return result
         }
         return null

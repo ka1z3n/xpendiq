@@ -40,6 +40,15 @@ object ParseUtil {
     fun normalizeMerchant(raw: String?): String? =
         raw?.uppercase()?.replace(Regex("\\s+"), "")?.takeIf { it.isNotEmpty() }
 
+    /**
+     * Folds Unicode "styled" letters (mathematical bold/italic/sans-serif, fullwidth, etc.) into
+     * plain ASCII so that simple regexes like `\bspent\b` match. Some senders — notably SBI Card's
+     * RCS template — write the verbs in Mathematical Alphanumeric Symbols (U+1D400 block) to
+     * make the message look bolder; without normalization the filter and extractors miss them.
+     */
+    fun normalizeBody(body: String): String =
+        java.text.Normalizer.normalize(body, java.text.Normalizer.Form.NFKC)
+
     /** Parse dd/mm/yy or dd-mm-yy or dd-MMM-yy. Falls back to receivedAt if it can't parse. */
     fun parseOccurredAt(dateStr: String?, receivedAtMillis: Long): Long {
         if (dateStr.isNullOrBlank()) return receivedAtMillis

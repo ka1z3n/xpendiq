@@ -224,4 +224,25 @@ class SmsParserTest {
         assertEquals("USD", p!!.currency)
         assertEquals(999L, p.amountPaise)
     }
+
+    @Test fun `SBI Card RCS with Unicode bold verbs is normalized and parsed`() {
+        // SBI Card's RCS template wraps "spent on your SBI Credit Card ending" / "INFO" in
+        // Mathematical Alphanumeric Symbols (U+1D400 block). Without NFKC normalization the
+        // filter and the SbiCardSpendExtractor regex don't see the verbs.
+        val body = "Rs.485.00 𝐬𝐩𝐞𝐧𝐭 " +
+            "𝐨𝐧 𝐲𝐨𝐮𝐫 " +
+            "𝐒𝐁𝐈 " +
+            "𝐂𝐫𝐞𝐝𝐢𝐭 " +
+            "𝐂𝐚𝐫𝐝 " +
+            "𝐞𝐧𝐝𝐢𝐧𝐠 " +
+            "9999 at SwiggyLimited on 01/06/26. " +
+            "𝐈𝐍𝐅𝐎"
+        val p = parser.parse(sender = "SBI CARDS AND PAYMENT SERVICES", body = body, receivedAtMillis = now, requireBankSender = false)
+        assertNotNull(p)
+        assertEquals(48500L, p!!.amountPaise)
+        assertEquals(TransactionType.DEBIT, p.type)
+        assertEquals(PaymentMode.CARD_CREDIT, p.paymentMode)
+        assertEquals("SwiggyLimited", p.merchantRaw)
+        assertEquals("9999", p.accountTail)
+    }
 }
