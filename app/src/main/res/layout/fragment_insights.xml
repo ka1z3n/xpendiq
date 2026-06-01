@@ -91,7 +91,7 @@
                     android:textAppearance="?attr/textAppearanceTitleSmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <com.example.spendy.ui.insights.CategoryPieView
+                <com.kaizenll.xpendiq.ui.insights.CategoryPieView
                     android:id="@+id/pie"
                     android:layout_width="match_parent"
                     android:layout_height="180dp"

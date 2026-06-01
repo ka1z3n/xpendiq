@@ -1,7 +1,7 @@
 """Find SBI Card transactions / SMS in the on-device DB."""
 import sqlite3, sys
 sys.stdout.reconfigure(encoding="utf-8")
-conn = sqlite3.connect(r"C:\Users\shredder\AppData\Local\Temp\spendy.db")
+conn = sqlite3.connect(r"C:\Users\shredder\AppData\Local\Temp\xpendiq.db")
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 

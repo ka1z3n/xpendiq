@@ -42,15 +42,15 @@
             android:orientation="vertical">
 
             <TextView
-                style="@style/SpendyBullet"
+                style="@style/XpendiqBullet"
                 android:text="@string/onb_perm_b1" />
 
             <TextView
-                style="@style/SpendyBullet"
+                style="@style/XpendiqBullet"
                 android:text="@string/onb_perm_b2" />
 
             <TextView
-                style="@style/SpendyBullet"
+                style="@style/XpendiqBullet"
                 android:text="@string/onb_perm_b3" />
 
         </LinearLayout>

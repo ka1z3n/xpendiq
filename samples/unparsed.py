@@ -6,7 +6,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.stdout.reconfigure(encoding="utf-8")
-CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\spendy\samples\sms.csv"
+CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\xpendiq\samples\sms.csv"
 
 SENDER_BANK = re.compile(r"^[A-Z]{2}-[A-Z0-9]{4,8}(-[A-Z])?$")
 OTP = re.compile(r"\b(otp|one[- ]time password|verification code|do not share|secure code)\b", re.I)

@@ -11,7 +11,7 @@
             android:name=".sms.TestIngestReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.spendy.TEST_INGEST" />
+                <action android:name="com.kaizenll.xpendiq.TEST_INGEST" />
             </intent-filter>
         </receiver>
 

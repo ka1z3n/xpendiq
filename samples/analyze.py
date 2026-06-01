@@ -1,10 +1,10 @@
-"""Quick exploratory analysis of sms.csv to inform Spendy's parser/category rules."""
+"""Quick exploratory analysis of sms.csv to inform Xpendiq's parser/category rules."""
 import csv
 import re
 import sys
 from collections import Counter, defaultdict
 
-CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\spendy\samples\sms.csv"
+CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\xpendiq\samples\sms.csv"
 
 # Skip 3 preamble lines, header on line 4
 def load_rows():

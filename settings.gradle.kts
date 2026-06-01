@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "spendy"
+rootProject.name = "xpendiq"
 include(":app")

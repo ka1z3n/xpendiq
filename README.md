@@ -1,4 +1,4 @@
-# Spendy
+# Xpendiq
 
 A privacy-first Android expense tracker that reads transactional bank SMS (and RCS) and turns them into a categorized spend log. Everything runs on-device; nothing leaves the phone.
 
@@ -34,7 +34,7 @@ Java 17 + Android SDK with `compileSdk 36`, `minSdk 26`. The Gradle wrapper uses
 
 ```
 app/
-├── src/main/java/com/example/spendy/
+├── src/main/java/com/kaizenll/xpendiq/
 │   ├── data/         # Room entities, DAOs, repositories, migrations
 │   ├── parser/       # SmsFilter + SmsParser + 14 extractors
 │   ├── categorizer/  # MerchantRule lookup
@@ -62,20 +62,20 @@ Debug builds register a `TestIngestReceiver` that lets you inject a fake bank SM
 
 ```bash
 # SMS-style (real shortcode sender):
-adb shell "am broadcast -a com.example.spendy.TEST_INGEST \
-    -n com.example.spendy/.sms.TestIngestReceiver \
+adb shell "am broadcast -a com.kaizenll.xpendiq.TEST_INGEST \
+    -n com.kaizenll.xpendiq/.sms.TestIngestReceiver \
     --es sender 'VM-HDFCBK-T' \
     --es body 'Sent Rs.250.00 From HDFC Bank A/C *1234 To TEST On 23/05/26 Ref 999'"
 
 # RCS-style (friendly sender, bypassSenderCheck=true):
-adb shell "am broadcast -a com.example.spendy.TEST_INGEST \
-    -n com.example.spendy/.sms.TestIngestReceiver \
+adb shell "am broadcast -a com.kaizenll.xpendiq.TEST_INGEST \
+    -n com.kaizenll.xpendiq/.sms.TestIngestReceiver \
     --es sender 'SBI Card' \
     --es body 'Rs.500 spent on your SBI Credit Card ending 9999 at TEST on 23/05/26.' \
     --ez bypass true"
 
 # Tail the logs:
-adb logcat SpendyTestIngest:V SpendyNotifListener:V *:S
+adb logcat XpendiqTestIngest:V XpendiqNotifListener:V *:S
 ```
 
 ## License

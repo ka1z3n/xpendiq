@@ -4,7 +4,7 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-DB = r"C:\Users\shredder\AppData\Local\Temp\spendy.db"
+DB = r"C:\Users\shredder\AppData\Local\Temp\xpendiq.db"
 conn = sqlite3.connect(DB)
 conn.row_factory = sqlite3.Row
 cur = conn.cursor()

@@ -1,7 +1,7 @@
-# Spendy — Product & Technical Spec
+# Xpendiq — Product & Technical Spec
 
 ## 1. Overview
-Spendy is an Android app that tracks personal spending by reading transactional SMS messages sent by banks, card issuers, and UPI apps. Each detected transaction becomes a *spend record*, automatically assigned to a category. Anything Spendy can't classify with confidence lands in an **Uncategorized** inbox where the user assigns a category manually.
+Xpendiq is an Android app that tracks personal spending by reading transactional SMS messages sent by banks, card issuers, and UPI apps. Each detected transaction becomes a *spend record*, automatically assigned to a category. Anything Xpendiq can't classify with confidence lands in an **Uncategorized** inbox where the user assigns a category manually.
 
 The app runs fully on-device. No transactional data leaves the phone.
 
@@ -14,9 +14,9 @@ The app runs fully on-device. No transactional data leaves the phone.
 ## 3. Non-Goals (v1)
 - No cloud sync, no accounts, no login.
 - No bill payment.
-- **No budgets, no over-spend alerts, no category caps.** Spendy reports what happened; it does not judge.
+- **No budgets, no over-spend alerts, no category caps.** Xpendiq reports what happened; it does not judge.
 - No OCR of paper receipts, no email parsing.
-- No investment portfolio valuation / P&L — Spendy only logs that an investment outflow happened.
+- No investment portfolio valuation / P&L — Xpendiq only logs that an investment outflow happened.
 - INR is the primary currency. USD is supported for foreign-currency subscriptions (rows store the original amount + ISO code), but multi-currency totals are not aggregated yet — non-INR rows are excluded from "Spent / Received / Invested this month".
 
 ## 4. Target User
@@ -177,14 +177,14 @@ Implementation note: each extractor is a small class with `match(sender, body, r
 ### 7.6 RCS support via NotificationListener
 Some banks (notably **SBI Card**) deliver "Rs.X spent..." messages as **RCS chatbot** messages on Google Messages, not as SMS. RCS messages don't reach the `SMS_RECEIVED` broadcast or `content://sms/inbox`. Google Messages stores them in its own private content provider that third-party apps can't query.
 
-Workaround: a `NotificationListenerService` registered against the Google Messages and Samsung Messages packages. When the user grants Notification access (Settings → Notification access → Spendy), every incoming notification from those apps is read, the title (sender) and `BIG_TEXT` / `MessagingStyle` body are extracted, and the same `Repository.ingestSms` pipeline runs with `bypassSenderCheck = true` (notification titles are friendly names like `SBI Card`, not shortcodes like `VM-SBICRD-S`, so the bank-shortcode filter is skipped).
+Workaround: a `NotificationListenerService` registered against the Google Messages and Samsung Messages packages. When the user grants Notification access (Settings → Notification access → Xpendiq), every incoming notification from those apps is read, the title (sender) and `BIG_TEXT` / `MessagingStyle` body are extracted, and the same `Repository.ingestSms` pipeline runs with `bypassSenderCheck = true` (notification titles are friendly names like `SBI Card`, not shortcodes like `VM-SBICRD-S`, so the bank-shortcode filter is skipped).
 
 Dedup: the content-based hash `sha256(sender + body.trim())` (see §9) means an SMS arriving via both the broadcast receiver and the notification listener is stored only once.
 
 Caveats:
 - Only **new** notifications are visible. Existing RCS messages in Google Messages from before the user granted access are unreachable.
 - Notification text can be truncated; we prefer `EXTRA_BIG_TEXT` / `MessagingStyle.messages.last().text` over `EXTRA_TEXT`.
-- The `Notification access` permission is privileged; OEM battery savers may stop the listener. If the user reports missing rows, ask them to whitelist Spendy from background restrictions.
+- The `Notification access` permission is privileged; OEM battery savers may stop the listener. If the user reports missing rows, ask them to whitelist Xpendiq from background restrictions.
 
 ### 7.7 Test corpus
 `samples/sms.csv` is the source-of-truth corpus (real anonymized SMS, ~7.4k bank-shortcode messages). Parser unit tests assert:
@@ -261,7 +261,7 @@ MerchantRule { id, pattern (regex/substring), categoryId, appliesToType, priorit
   - **No personal-name heuristic.** Bare personal-name strings (`PRAKASH`, `RANGAPUR SHANKAR`, `MS MULE SRIVYSHNAV`) are *not* defaulted to Transfers — in the corpus the majority are local vendors (chai stalls, sabzi-walas, kirana shops). Anything without a merchant-rule hit goes to Uncategorized.
 - Seeded **CREDIT** routes: `__CC_BILL_PAYMENT__` marker → Transfers (CC payment); `__CARD_REVERSAL__` marker → Refund; `__SALARY_NEFT__` marker → Income.
 - Seeded **INVESTMENT** rules: matched at parse time by the SIP extractor; no merchant rule needed in v1 since there's only one Investment bucket.
-- When the user manually categorizes an Uncategorized entry, Spendy offers: *"Always categorize <type>s from &lt;merchant&gt; as &lt;category&gt;?"* — accepting writes a `MerchantRule` with `source = USER_LEARNED, priority = 50` scoped to the original parse-time type. Cross-type picks also flip the type on the existing matching rows in a bulk `UPDATE`.
+- When the user manually categorizes an Uncategorized entry, Xpendiq offers: *"Always categorize <type>s from &lt;merchant&gt; as &lt;category&gt;?"* — accepting writes a `MerchantRule` with `source = USER_LEARNED, priority = 50` scoped to the original parse-time type. Cross-type picks also flip the type on the existing matching rows in a bulk `UPDATE`.
 - If no rule matches, the entry is placed in Uncategorized for its parse-time type.
 
 ### 8.3 User categories
@@ -308,7 +308,7 @@ Indexes on `Transaction.occurredAt`, `Transaction.categoryId`, `Transaction.type
 
 Bottom nav: 5 destinations, **icon-only** (no labels) so it stays slim. Custom Material-style vector icons for Home, Transactions, Investments, Insights, Settings. The BottomNavigationView's bottom padding picks up the system gesture inset so its background extends to the screen edge.
 
-1. **Onboarding** — 2-page ViewPager2 flow shown only on first launch (gated by a `Preferences.onboarding_done` flag). Page 1: what Spendy does + 4 bullet points. Page 2: permission rationale + **Allow SMS access** + **Skip for now**. After grant: dialog "Run a 90-day backfill now?" → enqueues `BackfillWorker`. Then proceeds to MainActivity.
+1. **Onboarding** — 2-page ViewPager2 flow shown only on first launch (gated by a `Preferences.onboarding_done` flag). Page 1: what Xpendiq does + 4 bullet points. Page 2: permission rationale + **Allow SMS access** + **Skip for now**. After grant: dialog "Run a 90-day backfill now?" → enqueues `BackfillWorker`. Then proceeds to MainActivity.
 2. **Home / This Month** — permission banner (when missing), Uncategorized review card (badge + count, navigates to Uncategorized Inbox), **Spent this month** big total, two small cards (Received / Invested), **Top categories** card (top 3 with coloured dot + ₹ amount + % of those 3) with "See all" → Insights, **Recent transactions** card (last 5 DEBITs, tap → detail sheet) with "See all" → Transactions tab.
 3. **Transactions** — TabLayout: **Spends | Credits**. Date-grouped list with tinted category chips (category colour at ~20% alpha background, full-saturation text). Tap row → detail bottom sheet. **+ Add transaction** FAB in bottom-right opens the Edit screen in Add mode. CC bill payments are hidden from the Credits tab.
 4. **Uncategorized Inbox** — Tabs: Spends / Credits. Tap a row → category picker bottom-sheet showing **all** categories grouped under "Spends", "Credits", "Investments" section headers (cross-type moves allowed). Toggle: "Always categorize from &lt;merchant&gt; this way" — writes a `USER_LEARNED MerchantRule` (priority 50) and bulk-updates existing matching rows. **Delete** button in the sheet header for rows the user wants removed (e.g. self-transfers).
@@ -327,7 +327,7 @@ Bottom nav: 5 destinations, **icon-only** (no labels) so it stays slim. Custom M
 - `BackfillWorker` — one-shot `WorkManager` job. Reads `content://sms/inbox` for the last 90 days, runs the same pipeline. Reports `processed / saved` via `setProgress`; Settings page renders this live.
 
 ### 11.2 On-start migrations
-All run sequentially on `SpendyApplication.onCreate` on a background scope. Each is **idempotent** — safe to re-run on every app launch.
+All run sequentially on `XpendiqApplication.onCreate` on a background scope. Each is **idempotent** — safe to re-run on every app launch.
 
 1. **Room migration v1 → v2** — adds the `currency TEXT NOT NULL DEFAULT 'INR'` column.
 2. **`HashRehashMigration`** — groups existing rows by `(sender, smsBody.trim())`, deletes duplicates (keeps highest id = latest parse), re-hashes survivors with the new `transactionHash(sender, body)` formula. Heals duplicate-row bugs introduced before the parser-independent hash existed.
@@ -343,7 +343,7 @@ All run sequentially on `SpendyApplication.onCreate` on a background scope. Each
 - The Room DB lives in app-private storage. **SQLCipher encryption is not yet wired** — see Future Work §17.
 - **Biometric app lock is not yet wired** — see Future Work §17.
 - **CSV export is not yet wired** — see Future Work §17.
-- Sensitive APIs (`READ_SMS`, `RECEIVE_SMS`, notification listener) are gated behind runtime permissions and an explicit onboarding rationale. Notification access uses the privileged `BIND_NOTIFICATION_LISTENER_SERVICE` route via system Settings; Spendy can't grant it on the user's behalf.
+- Sensitive APIs (`READ_SMS`, `RECEIVE_SMS`, notification listener) are gated behind runtime permissions and an explicit onboarding rationale. Notification access uses the privileged `BIND_NOTIFICATION_LISTENER_SERVICE` route via system Settings; Xpendiq can't grant it on the user's behalf.
 - **Release builds strip debug-only surface**: `TestIngestReceiver` lives in `app/src/debug/` and is only included in debug builds. Release builds have no exported intent for fake SMS injection.
 
 ## 13. Edge Cases
@@ -364,7 +364,7 @@ All run sequentially on `SpendyApplication.onCreate` on a background scope. Each
 - **Merchant name normalization**: card spends arrive with spaces stripped (`VANLAVINOCAFE`), UPI spends arrive with spaces (`VANLAVINO CAFE`). Persist `merchantRaw` verbatim, derive `merchantNormalized = upper().replace(spaces, "")` for matching, display the raw form.
 - **SMS app on different SIM / dual SIM**: receiver fires per SIM; no special handling needed.
 - **Permission revoked mid-life**: receiver becomes a silent no-op; Home shows a re-grant banner.
-- **SBI-Card-only OTPs**: SBI Card sometimes sends *only* an OTP SMS for an online card transaction (no separate "Rs.X spent..." confirmation). Spendy correctly drops the OTP — but that means the transaction is invisible to the parser. No fix on Spendy's side; bank-side behaviour.
+- **SBI-Card-only OTPs**: SBI Card sometimes sends *only* an OTP SMS for an online card transaction (no separate "Rs.X spent..." confirmation). Xpendiq correctly drops the OTP — but that means the transaction is invisible to the parser. No fix on Xpendiq's side; bank-side behaviour.
 
 ## 14. Open Questions
 - Investment sub-categories (Equity / MF / Gold / FD) — keep as a single bucket in v1, revisit if the list gets noisy.
@@ -391,7 +391,7 @@ In rough priority order:
 
 ### 17.1 Biometric app lock
 - Use `BiometricPrompt` (androidx.biometric) with `BIOMETRIC_STRONG | DEVICE_CREDENTIAL` fallback.
-- Lock state held in `SpendyApplication`; MainActivity inserts a lock screen Fragment between launch and the bottom-nav UI when locked.
+- Lock state held in `XpendiqApplication`; MainActivity inserts a lock screen Fragment between launch and the bottom-nav UI when locked.
 - Settings toggle: **App lock** with sub-options "Immediately" / "After 1 minute" / "After 5 minutes" — last used time persisted to SharedPreferences.
 - Onboarding skips this; it's an opt-in setting.
 

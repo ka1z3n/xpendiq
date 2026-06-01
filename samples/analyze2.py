@@ -3,7 +3,7 @@ import csv
 import re
 from collections import Counter, defaultdict
 
-CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\spendy\samples\sms.csv"
+CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\xpendiq\samples\sms.csv"
 
 def load_rows():
     rows = []

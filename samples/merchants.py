@@ -3,7 +3,7 @@ import csv, re, sys
 from collections import Counter
 
 sys.stdout.reconfigure(encoding="utf-8")
-CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\spendy\samples\sms.csv"
+CSV_PATH = r"C:\Users\shredder\AndroidStudioProjects\xpendiq\samples\sms.csv"
 SENDER_BANK = re.compile(r"^[A-Z]{2}-[A-Z0-9]{4,8}(-[A-Z])?$")
 
 with open(CSV_PATH, "r", encoding="utf-8", errors="replace") as f:

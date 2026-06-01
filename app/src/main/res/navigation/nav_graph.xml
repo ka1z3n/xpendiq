@@ -6,33 +6,33 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.spendy.ui.home.HomeFragment"
+        android:name="com.kaizenll.xpendiq.ui.home.HomeFragment"
         android:label="@string/nav_home" />
     <fragment
         android:id="@+id/transactionsFragment"
-        android:name="com.example.spendy.ui.transactions.TransactionsFragment"
+        android:name="com.kaizenll.xpendiq.ui.transactions.TransactionsFragment"
         android:label="@string/nav_transactions" />
     <fragment
         android:id="@+id/investmentsFragment"
-        android:name="com.example.spendy.ui.investments.InvestmentsFragment"
+        android:name="com.kaizenll.xpendiq.ui.investments.InvestmentsFragment"
         android:label="@string/nav_investments" />
     <fragment
         android:id="@+id/insightsFragment"
-        android:name="com.example.spendy.ui.insights.InsightsFragment"
+        android:name="com.kaizenll.xpendiq.ui.insights.InsightsFragment"
         android:label="@string/nav_insights" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.spendy.ui.settings.SettingsFragment"
+        android:name="com.kaizenll.xpendiq.ui.settings.SettingsFragment"
         android:label="@string/nav_settings" />
 
     <fragment
         android:id="@+id/uncategorizedFragment"
-        android:name="com.example.spendy.ui.uncategorized.UncategorizedFragment"
+        android:name="com.kaizenll.xpendiq.ui.uncategorized.UncategorizedFragment"
         android:label="@string/uncat_title" />
 
     <fragment
         android:id="@+id/editTransactionFragment"
-        android:name="com.example.spendy.ui.edit.EditTransactionFragment"
+        android:name="com.kaizenll.xpendiq.ui.edit.EditTransactionFragment"
         android:label="@string/edit_title">
         <argument
             android:name="txnId"
@@ -42,6 +42,6 @@
 
     <fragment
         android:id="@+id/categoriesFragment"
-        android:name="com.example.spendy.ui.categories.CategoriesFragment"
+        android:name="com.kaizenll.xpendiq.ui.categories.CategoriesFragment"
         android:label="@string/cats_title" />
 </navigation>
