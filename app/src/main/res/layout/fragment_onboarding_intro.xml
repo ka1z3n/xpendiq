@@ -10,12 +10,12 @@
         android:orientation="vertical"
         android:padding="28dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:layout_marginTop="32dp"
-            android:text="@string/onb_intro_emoji"
-            android:textSize="64sp" />
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_brand_mark" />
 
         <TextView
             android:layout_width="match_parent"

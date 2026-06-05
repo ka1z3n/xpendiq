@@ -34,7 +34,6 @@
     <string name="onb_allow">Allow SMS access</string>
     <string name="onb_skip">Skip for now</string>
 
-    <string name="onb_intro_emoji">📈</string>
     <string name="onb_intro_title">Track every spend, automatically</string>
     <string name="onb_intro_body">Xpendiq reads transactional SMS from your bank, classifies them, and shows where your money goes.</string>
     <string name="onb_intro_b1">🏦 Works with HDFC, SBI, ICICI, Axis &amp; more</string>
