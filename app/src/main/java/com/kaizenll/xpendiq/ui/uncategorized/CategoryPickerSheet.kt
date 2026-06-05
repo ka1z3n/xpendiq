@@ -37,6 +37,13 @@ class CategoryPickerSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val bulkIds = requireArguments().getLongArray(ARG_BULK_IDS)
+        if (bulkIds != null) {
+            bindBulk(view, bulkIds)
+            return
+        }
+
         val txnId = requireArguments().getLong(ARG_TXN_ID)
         val app = requireActivity().application as XpendiqApplication
 
@@ -45,6 +52,30 @@ class CategoryPickerSheet : BottomSheetDialogFragment() {
             if (txn == null) { dismiss(); return@launch }
             bindHeader(view, txn)
             bindList(view, txn)
+        }
+    }
+
+    /** Bulk mode: choose one category to apply to every selected transaction. */
+    private fun bindBulk(view: View, ids: LongArray) {
+        view.findViewById<TextView>(R.id.header_merchant).text =
+            resources.getQuantityString(R.plurals.uncat_bulk_header, ids.size, ids.size)
+        view.findViewById<TextView>(R.id.header_amount).setText(R.string.uncat_bulk_subtitle)
+        view.findViewById<SwitchMaterial>(R.id.apply_all_switch).visibility = View.GONE
+        view.findViewById<MaterialButton>(R.id.delete_btn).visibility = View.GONE
+
+        val recycler = view.findViewById<RecyclerView>(R.id.categories)
+        val adapter = CategoryPickerAdapter(onPick = { category ->
+            viewModel.bulkRecategorize(ids.toList(), category)
+            parentFragmentManager.setFragmentResult(RESULT_BULK_DONE, Bundle.EMPTY)
+            dismiss()
+        })
+        recycler.layoutManager = LinearLayoutManager(requireContext())
+        recycler.adapter = adapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.pickableItems.collect { adapter.submitList(it) }
+            }
         }
     }
 
@@ -101,8 +132,17 @@ class CategoryPickerSheet : BottomSheetDialogFragment() {
 
     companion object {
         private const val ARG_TXN_ID = "txn_id"
+        private const val ARG_BULK_IDS = "bulk_ids"
+
+        /** FragmentResult key emitted after a bulk categorize is applied. */
+        const val RESULT_BULK_DONE = "uncat_bulk_done"
+
         fun newInstance(txnId: Long): CategoryPickerSheet = CategoryPickerSheet().apply {
             arguments = Bundle().apply { putLong(ARG_TXN_ID, txnId) }
+        }
+
+        fun newInstanceBulk(ids: LongArray): CategoryPickerSheet = CategoryPickerSheet().apply {
+            arguments = Bundle().apply { putLongArray(ARG_BULK_IDS, ids) }
         }
     }
 }

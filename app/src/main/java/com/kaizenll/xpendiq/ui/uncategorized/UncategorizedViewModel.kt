@@ -84,6 +84,16 @@ class UncategorizedViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.delete(txn) }
     }
 
+    /** Assign [category] to every selected transaction (bulk multi-select). */
+    fun bulkRecategorize(ids: List<Long>, category: Category) {
+        viewModelScope.launch { repo.recategorizeAll(ids, category.id) }
+    }
+
+    /** Delete every selected transaction (bulk multi-select). */
+    fun bulkDelete(ids: List<Long>) {
+        viewModelScope.launch { repo.deleteAll(ids) }
+    }
+
     private fun observeUncategorizedTxns(type: TransactionType): Flow<List<TransactionEntity>> {
         val cachedId = uncategorizedIds[type]
         return if (cachedId != null) {

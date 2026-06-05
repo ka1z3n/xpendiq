@@ -87,6 +87,16 @@
     <string name="uncat_apply_all">Always categorize from %1$s this way</string>
     <string name="uncat_chip">Uncategorized</string>
     <string name="uncat_header_count">Uncategorized · %1$d to review</string>
+    <string name="uncat_selected_count">%1$d selected</string>
+    <string name="uncat_bulk_categorize">Categorize</string>
+    <string name="uncat_bulk_delete">Delete</string>
+    <string name="uncat_bulk_subtitle">Choose a category for all selected</string>
+    <string name="uncat_bulk_delete_title">Delete %1$d transactions?</string>
+    <string name="uncat_bulk_delete_msg">They\'ll be removed locally and won\'t be re-imported from SMS.</string>
+    <plurals name="uncat_bulk_header">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
     <string name="pct_lt_one">&lt;1%</string>
 
     <plurals name="home_uncat_count">

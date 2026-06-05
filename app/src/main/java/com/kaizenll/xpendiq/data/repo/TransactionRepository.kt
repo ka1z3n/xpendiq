@@ -111,6 +111,35 @@ class TransactionRepository(
     }
 
     /**
+     * Bulk recategorize by transaction id (multi-select). Honours the destination category's
+     * `appliesToType` so moving rows into a different-type category flips their `type` too.
+     * Does not write a merchant rule — these are explicit one-off picks across mixed merchants.
+     */
+    suspend fun recategorizeAll(ids: List<Long>, newCategoryId: Long) {
+        val destType = categoryDao.findById(newCategoryId)?.appliesToType
+        val now = System.currentTimeMillis()
+        for (id in ids) {
+            val txn = transactionDao.findById(id) ?: continue
+            transactionDao.update(
+                txn.copy(
+                    categoryId = newCategoryId,
+                    type = destType ?: txn.type,
+                    isUserEdited = true,
+                    updatedAt = now,
+                )
+            )
+        }
+    }
+
+    /** Bulk delete by id (multi-select); each goes through [delete] so its hash is tombstoned. */
+    suspend fun deleteAll(ids: List<Long>) {
+        for (id in ids) {
+            val txn = transactionDao.findById(id) ?: continue
+            delete(txn)
+        }
+    }
+
+    /**
      * "Apply to all from <merchant>" path. Writes a USER_LEARNED MerchantRule that future SMS
      * of the original type will hit, and bulk-updates every existing transaction matching the
      * merchant+oldType. If the destination category is a different type, also flips `type` on
