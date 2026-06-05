@@ -2,6 +2,7 @@ package com.kaizenll.xpendiq.ui.transactions
 
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.TransactionType
+import com.kaizenll.xpendiq.util.Motion
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
@@ -52,10 +54,24 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
             findNavController().navigate(R.id.editTransactionFragment)
         }
 
+        val staggerController =
+            if (Motion.enabled(requireContext())) {
+                AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_animation_fall_down)
+            } else {
+                null
+            }
+        var staggered = false
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.items.collect { items ->
-                    adapter.submitList(items)
+                    adapter.submitList(items) {
+                        if (staggerController != null && !staggered && items.isNotEmpty()) {
+                            staggered = true
+                            recycler.layoutAnimation = staggerController
+                            recycler.scheduleLayoutAnimation()
+                        }
+                    }
                     empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
                     recycler.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
                 }

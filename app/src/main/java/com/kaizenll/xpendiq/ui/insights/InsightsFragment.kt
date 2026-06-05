@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.util.CurrencyFormat
+import com.kaizenll.xpendiq.util.Motion
 import com.google.android.material.button.MaterialButton
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -102,13 +103,21 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
         donutCenter.visibility = View.VISIBLE
         empty.visibility = View.GONE
 
-        pie.setData(bars.map { parseColor(it.colorHex) to it.totalPaise })
+        pie.setData(bars.map { parseColor(it.colorHex) to it.totalPaise }, animate = true)
+
+        // Centre total fades up once the arcs have mostly drawn.
+        if (Motion.enabled(requireContext())) {
+            donutCenter.alpha = 0f
+            donutCenter.animate().alpha(1f).setStartDelay(550L).setDuration(350L).start()
+        } else {
+            donutCenter.alpha = 1f
+        }
 
         val total = bars.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(legend.context)
-        for (b in bars) {
+        for ((i, b) in bars.withIndex()) {
             val row = inflater.inflate(R.layout.item_category_progress, legend, false)
-            CategoryProgressBinder.bind(row, b.name, b.colorHex, b.totalPaise, total)
+            CategoryProgressBinder.bind(row, b.name, b.colorHex, b.totalPaise, total, animate = true, index = i)
             legend.addView(row)
         }
     }

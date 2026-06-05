@@ -1,18 +1,21 @@
 package com.kaizenll.xpendiq.ui.insights
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import com.kaizenll.xpendiq.util.Motion
 
 /**
  * Minimal donut chart: takes a list of (color, amount) pairs, draws each slice as a stroked
  * arc on a single circle. Because we use `Paint.Style.STROKE` with `useCenter = false`, the
  * inside is naturally hollow — no clipping or XferMode tricks needed.
  *
- * No labels are drawn inside the donut; the surrounding legend rows handle that.
+ * Slices can sweep in clockwise via [setData] `animate = true`; the surrounding legend rows
+ * handle labels.
  */
 class CategoryPieView @JvmOverloads constructor(
     context: Context,
@@ -23,6 +26,10 @@ class CategoryPieView @JvmOverloads constructor(
     /** color × fraction of total (0..1). */
     private var slices: List<Pair<Int, Float>> = emptyList()
 
+    /** 0..1 — how much of the full circle is revealed (for the draw-on animation). */
+    private var revealProgress = 1f
+    private var revealAnimator: ValueAnimator? = null
+
     private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.BUTT
@@ -32,7 +39,7 @@ class CategoryPieView @JvmOverloads constructor(
     /** Outer / inner radius ratio. 0.6 gives a generous donut hole. */
     private val innerRadiusRatio = 0.62f
 
-    fun setData(items: List<Pair<Int, Long>>) {
+    fun setData(items: List<Pair<Int, Long>>, animate: Boolean = false) {
         val total = items.sumOf { it.second }
         slices = if (total > 0L) {
             items
@@ -41,7 +48,23 @@ class CategoryPieView @JvmOverloads constructor(
         } else {
             emptyList()
         }
-        invalidate()
+
+        revealAnimator?.cancel()
+        if (animate && slices.isNotEmpty() && Motion.enabled(context)) {
+            revealProgress = 0f
+            revealAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = Motion.EMPHASIZED_MS
+                interpolator = Motion.emphasized
+                addUpdateListener {
+                    revealProgress = it.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
+        } else {
+            revealProgress = 1f
+            invalidate()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -57,12 +80,16 @@ class CategoryPieView @JvmOverloads constructor(
         arcPaint.strokeWidth = stroke
         rect.set(cx - midR, cy - midR, cx + midR, cy + midR)
 
-        var startAngle = -90f  // start at 12 o'clock
+        val revealed = 360f * revealProgress
+        var acc = 0f // angle consumed so far, from 12 o'clock
         for ((color, fraction) in slices) {
-            arcPaint.color = color
             val sweep = fraction * 360f
-            canvas.drawArc(rect, startAngle, sweep, false, arcPaint)
-            startAngle += sweep
+            val visible = (revealed - acc).coerceIn(0f, sweep)
+            if (visible > 0f) {
+                arcPaint.color = color
+                canvas.drawArc(rect, -90f + acc, visible, false, arcPaint)
+            }
+            acc += sweep
         }
     }
 }

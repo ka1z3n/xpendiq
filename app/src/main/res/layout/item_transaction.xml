@@ -8,7 +8,8 @@
     android:minHeight="64dp"
     android:orientation="horizontal"
     android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp">
+    android:paddingVertical="12dp"
+    android:stateListAnimator="@animator/card_press">
 
     <TextView
         android:id="@+id/avatar"

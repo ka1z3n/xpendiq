@@ -2,6 +2,7 @@ package com.kaizenll.xpendiq.ui.investments
 
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,6 +15,7 @@ import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionsAdapter
 import com.kaizenll.xpendiq.util.CurrencyFormat
+import com.kaizenll.xpendiq.util.Motion
 import kotlinx.coroutines.launch
 
 class InvestmentsFragment : Fragment(R.layout.fragment_investments) {
@@ -41,10 +43,24 @@ class InvestmentsFragment : Fragment(R.layout.fragment_investments) {
                 }
             }
         }
+        val staggerController =
+            if (Motion.enabled(requireContext())) {
+                AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_animation_fall_down)
+            } else {
+                null
+            }
+        var staggered = false
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.items.collect { items ->
-                    adapter.submitList(items)
+                    adapter.submitList(items) {
+                        if (staggerController != null && !staggered && items.isNotEmpty()) {
+                            staggered = true
+                            recycler.layoutAnimation = staggerController
+                            recycler.scheduleLayoutAnimation()
+                        }
+                    }
                     empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
                     recycler.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
                 }

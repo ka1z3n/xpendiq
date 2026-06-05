@@ -20,6 +20,7 @@ import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import com.kaizenll.xpendiq.ui.transactions.TransactionRowBinder
 import com.kaizenll.xpendiq.util.CurrencyFormat
+import com.kaizenll.xpendiq.util.Motion
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -32,6 +33,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private val viewModel: HomeViewModel by viewModels()
     private val monthFmt = DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH)
+    private var monthTotalShown = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -65,7 +67,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.monthSpend.collect { v ->
-                    view.findViewById<TextView>(R.id.month_total).text = CurrencyFormat.paiseToInr(v)
+                    val tv = view.findViewById<TextView>(R.id.month_total)
+                    if (!monthTotalShown && v > 0L) {
+                        monthTotalShown = true
+                        Motion.countUpRupees(tv, v, whole = false)
+                    } else {
+                        tv.text = CurrencyFormat.paiseToInr(v)
+                    }
                 }
             }
         }
@@ -120,9 +128,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val total = cats.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(container.context)
-        for (c in cats) {
+        for ((i, c) in cats.withIndex()) {
             val row = inflater.inflate(R.layout.item_category_progress, container, false)
-            CategoryProgressBinder.bind(row, c.name, c.colorHex, c.totalPaise, total)
+            CategoryProgressBinder.bind(row, c.name, c.colorHex, c.totalPaise, total, animate = true, index = i)
             container.addView(row)
         }
     }
