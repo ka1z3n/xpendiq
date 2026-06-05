@@ -37,7 +37,7 @@ class InvestmentsFragment : Fragment(R.layout.fragment_investments) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.monthlyTotal.collect { paise ->
-                    total.text = CurrencyFormat.paiseToInr(paise)
+                    total.text = CurrencyFormat.paiseToInrOrDash(paise)
                 }
             }
         }

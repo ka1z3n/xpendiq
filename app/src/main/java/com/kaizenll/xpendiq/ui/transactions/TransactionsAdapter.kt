@@ -3,6 +3,7 @@ package com.kaizenll.xpendiq.ui.transactions
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -10,63 +11,49 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.util.CurrencyFormat
 
+/** Renders one filled card ([DaySection]) per calendar day, inflating its rows inline. */
 class TransactionsAdapter(
     private val onRowClick: (TransactionListItem.Row) -> Unit,
-) : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(Diff) {
+) : ListAdapter<DaySection, TransactionsAdapter.DayVH>(Diff) {
 
     init { setHasStableIds(true) }
 
-    override fun getItemId(position: Int): Long = getItem(position).stableId.hashCode().toLong()
+    override fun getItemId(position: Int): Long = getItem(position).dayKey
 
-    override fun getItemViewType(position: Int): Int = when (getItem(position)) {
-        is TransactionListItem.Header -> TYPE_HEADER
-        is TransactionListItem.Row -> TYPE_ROW
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayVH {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_day_section, parent, false)
+        return DayVH(view, onRowClick)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return when (viewType) {
-            TYPE_HEADER -> HeaderVH(inflater.inflate(R.layout.item_date_header, parent, false))
-            TYPE_ROW -> RowVH(inflater.inflate(R.layout.item_transaction, parent, false), onRowClick)
-            else -> error("unknown viewType $viewType")
-        }
-    }
+    override fun onBindViewHolder(holder: DayVH, position: Int) = holder.bind(getItem(position))
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (val item = getItem(position)) {
-            is TransactionListItem.Header -> (holder as HeaderVH).bind(item)
-            is TransactionListItem.Row -> (holder as RowVH).bind(item)
-        }
-    }
-
-    private class HeaderVH(view: View) : RecyclerView.ViewHolder(view) {
+    class DayVH(
+        view: View,
+        private val onRowClick: (TransactionListItem.Row) -> Unit,
+    ) : RecyclerView.ViewHolder(view) {
         private val label: TextView = view.findViewById(R.id.date_label)
         private val total: TextView = view.findViewById(R.id.date_total)
-        fun bind(h: TransactionListItem.Header) {
-            label.text = h.label
-            total.text = CurrencyFormat.paiseToInr(h.totalAmountPaise)
+        private val container: LinearLayout = view.findViewById(R.id.rows_container)
+        private val inflater = LayoutInflater.from(view.context)
+
+        fun bind(section: DaySection) {
+            label.text = section.label
+            total.text = CurrencyFormat.paiseToInr(section.totalAmountPaise)
+            container.removeAllViews()
+            for (row in section.rows) {
+                val rowView = inflater.inflate(R.layout.item_transaction, container, false)
+                TransactionRowBinder.bind(rowView, row.txn, row.category, onClick = { onRowClick(row) })
+                container.addView(rowView)
+            }
         }
     }
 
-    private class RowVH(
-        view: View,
-        private val onClick: (TransactionListItem.Row) -> Unit,
-    ) : RecyclerView.ViewHolder(view) {
-        fun bind(row: TransactionListItem.Row) {
-            TransactionRowBinder.bind(itemView, row.txn, row.category, onClick = { _ -> onClick(row) })
-        }
-    }
+    private object Diff : DiffUtil.ItemCallback<DaySection>() {
+        override fun areItemsTheSame(old: DaySection, new: DaySection): Boolean =
+            old.dayKey == new.dayKey
 
-    private object Diff : DiffUtil.ItemCallback<TransactionListItem>() {
-        override fun areItemsTheSame(old: TransactionListItem, new: TransactionListItem): Boolean =
-            old.stableId == new.stableId
-
-        override fun areContentsTheSame(old: TransactionListItem, new: TransactionListItem): Boolean =
+        override fun areContentsTheSame(old: DaySection, new: DaySection): Boolean =
             old == new
-    }
-
-    companion object {
-        private const val TYPE_HEADER = 0
-        private const val TYPE_ROW = 1
     }
 }

@@ -5,8 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.TransactionType
+import com.kaizenll.xpendiq.ui.transactions.DaySection
 import com.kaizenll.xpendiq.ui.transactions.TransactionListBuilder
-import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
@@ -38,7 +38,7 @@ class InvestmentsViewModel(app: Application) : AndroidViewModel(app) {
         txnDao.observeTotal(TransactionType.INVESTMENT, monthStart, monthEnd)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
 
-    val items: StateFlow<List<TransactionListItem>> =
+    val items: StateFlow<List<DaySection>> =
         txnDao.observeByType(TransactionType.INVESTMENT)
             .combine(categoryDao.observeAll()) { txns, cats -> TransactionListBuilder.build(txns, cats) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

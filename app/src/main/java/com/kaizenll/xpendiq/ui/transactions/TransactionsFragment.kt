@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.TransactionType
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
 
@@ -48,7 +48,7 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
         val initialTab = if (viewModel.selectedType.value == TransactionType.CREDIT) 1 else 0
         tabs.getTabAt(initialTab)?.select()
 
-        view.findViewById<ExtendedFloatingActionButton>(R.id.add_fab).setOnClickListener {
+        view.findViewById<FloatingActionButton>(R.id.add_fab).setOnClickListener {
             findNavController().navigate(R.id.editTransactionFragment)
         }
 

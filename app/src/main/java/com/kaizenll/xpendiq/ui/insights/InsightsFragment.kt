@@ -1,12 +1,12 @@
 package com.kaizenll.xpendiq.ui.insights
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -47,15 +47,23 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
 
     private fun renderState(view: View, ui: InsightsUi) {
         view.findViewById<TextView>(R.id.month_label).text = ui.month.format(monthFmt)
-        view.findViewById<TextView>(R.id.total_spent).text = CurrencyFormat.paiseToInr(ui.totalSpent)
         view.findViewById<TextView>(R.id.mom_delta).text = formatDelta(ui)
-        view.findViewById<TextView>(R.id.credited).text = CurrencyFormat.paiseToInr(ui.credited)
-        view.findViewById<TextView>(R.id.invested).text = CurrencyFormat.paiseToInr(ui.invested)
+        view.findViewById<TextView>(R.id.donut_total).text = CurrencyFormat.paiseToInrWhole(ui.totalSpent)
+
+        view.findViewById<TextView>(R.id.credited).apply {
+            text = CurrencyFormat.paiseToInrOrDash(ui.credited)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.money_credit))
+        }
+        view.findViewById<TextView>(R.id.invested).apply {
+            text = CurrencyFormat.paiseToInrOrDash(ui.invested)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.money_investment))
+        }
 
         bindPie(
             view.findViewById(R.id.pie),
             view.findViewById(R.id.legend_container),
             view.findViewById(R.id.bars_empty),
+            view.findViewById(R.id.donut_center),
             ui.bars,
         )
     }
@@ -79,16 +87,19 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
         pie: CategoryPieView,
         legend: LinearLayout,
         empty: TextView,
+        donutCenter: View,
         bars: List<CategoryBar>,
     ) {
         legend.removeAllViews()
         if (bars.isEmpty()) {
             pie.setData(emptyList())
             pie.visibility = View.GONE
+            donutCenter.visibility = View.GONE
             empty.visibility = View.VISIBLE
             return
         }
         pie.visibility = View.VISIBLE
+        donutCenter.visibility = View.VISIBLE
         empty.visibility = View.GONE
 
         pie.setData(bars.map { parseColor(it.colorHex) to it.totalPaise })
@@ -96,14 +107,8 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
         val total = bars.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(legend.context)
         for (b in bars) {
-            val row = inflater.inflate(R.layout.item_category_legend, legend, false)
-            val color = parseColor(b.colorHex)
-            val dot = row.findViewById<View>(R.id.color_dot)
-            (dot.background as? GradientDrawable)?.setColor(color) ?: dot.setBackgroundColor(color)
-            row.findViewById<TextView>(R.id.name).text = b.name
-            row.findViewById<TextView>(R.id.amount).text = CurrencyFormat.paiseToInr(b.totalPaise)
-            val pct = ((b.totalPaise.toDouble() / total.toDouble()) * 100.0).toInt()
-            row.findViewById<TextView>(R.id.percent).text = "$pct%"
+            val row = inflater.inflate(R.layout.item_category_progress, legend, false)
+            CategoryProgressBinder.bind(row, b.name, b.colorHex, b.totalPaise, total)
             legend.addView(row)
         }
     }

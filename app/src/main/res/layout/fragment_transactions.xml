@@ -5,6 +5,33 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- Branded header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_brand_mark" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:text="@string/transactions_title"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="?attr/colorOnSurface" />
+
+    </LinearLayout>
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabs"
         android:layout_width="match_parent"
@@ -34,6 +61,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:paddingTop="6dp"
             android:paddingBottom="96dp" />
 
         <TextView
@@ -46,14 +74,14 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone" />
 
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/add_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="20dp"
-            android:text="@string/edit_add_title"
-            app:icon="@android:drawable/ic_input_add" />
+            android:contentDescription="@string/edit_add_title"
+            app:srcCompat="@drawable/ic_add" />
 
     </FrameLayout>
 

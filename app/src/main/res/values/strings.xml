@@ -87,6 +87,8 @@
     <string name="uncat_empty">Nothing to categorize. Nice.</string>
     <string name="uncat_apply_all">Always categorize from %1$s this way</string>
     <string name="uncat_chip">Uncategorized</string>
+    <string name="uncat_header_count">Uncategorized · %1$d to review</string>
+    <string name="pct_lt_one">&lt;1%</string>
 
     <plurals name="home_uncat_count">
         <item quantity="one">%d to categorize</item>
@@ -97,6 +99,12 @@
     <string name="settings_section_backfill">Backfill</string>
     <string name="settings_section_categories">Categories</string>
     <string name="settings_manage_categories">Manage categories</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_status_granted">Granted</string>
+    <string name="settings_status_missing">Not granted</string>
+    <string name="settings_label_sms">SMS access</string>
+    <string name="settings_label_notif">Notification access</string>
     <string name="settings_section_notif">Notification access (for RCS)</string>
     <string name="settings_notif_desc">Some banks (e.g. SBI Card) deliver transaction alerts via RCS instead of SMS. To capture those, Xpendiq needs to read your messaging-app notifications. Only Google Messages and Samsung Messages are watched.</string>
     <string name="settings_notif_granted">Notification access: Granted</string>

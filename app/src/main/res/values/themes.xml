@@ -1,8 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Xpendiq" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Make filled cards a clearly lighter container than the (near-black) background,
+             so each card reads as a distinct box — matching the design system. Cards that set
+             their own cardBackgroundColor (nudge, error banner, investments) override this. -->
+        <item name="materialCardViewStyle">@style/Widget.Xpendiq.Card</item>
+    </style>
+
+    <style name="Widget.Xpendiq.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="cardElevation">0dp</item>
     </style>
 
     <style name="Theme.Xpendiq" parent="Base.Theme.Xpendiq" />

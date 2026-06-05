@@ -48,3 +48,9 @@ generated/
 
 # ── Claude Code local settings ────────────────────────────
 .claude/
+
+# ── Design reference bundle (local only) ──────────────────
+# Exported design-system HTML/JSX + vendored babel + screenshots, kept
+# locally for reference. The brand SVGs under design/logo/ are committed.
+/Xpendiq Design System.html
+/Xpendiq Design System_files/

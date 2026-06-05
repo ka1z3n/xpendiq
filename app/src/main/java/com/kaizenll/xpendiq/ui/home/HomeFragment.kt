@@ -1,13 +1,12 @@
 package com.kaizenll.xpendiq.ui.home
 
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -16,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.ui.insights.CategoryBar
+import com.kaizenll.xpendiq.ui.insights.CategoryProgressBinder
 import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import com.kaizenll.xpendiq.ui.transactions.TransactionRowBinder
@@ -23,11 +23,15 @@ import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private val viewModel: HomeViewModel by viewModels()
+    private val monthFmt = DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -39,6 +43,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         view.findViewById<MaterialButton>(R.id.banner_grant).setOnClickListener {
             permissionLauncher.launch(SmsPermissions.required)
         }
+
+        view.findViewById<TextView>(R.id.month_pill).text = LocalDate.now().format(monthFmt)
+        view.findViewById<TextView>(R.id.month_credited)
+            .setTextColor(ContextCompat.getColor(requireContext(), R.color.money_credit))
+        view.findViewById<TextView>(R.id.month_invested)
+            .setTextColor(ContextCompat.getColor(requireContext(), R.color.money_investment))
 
         val uncatCard = view.findViewById<MaterialCardView>(R.id.uncat_card)
         uncatCard.setOnClickListener {
@@ -62,14 +72,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.monthCredited.collect { v ->
-                    view.findViewById<TextView>(R.id.month_credited).text = CurrencyFormat.paiseToInr(v)
+                    view.findViewById<TextView>(R.id.month_credited).text = CurrencyFormat.paiseToInrOrDash(v)
                 }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.monthInvested.collect { v ->
-                    view.findViewById<TextView>(R.id.month_invested).text = CurrencyFormat.paiseToInr(v)
+                    view.findViewById<TextView>(R.id.month_invested).text = CurrencyFormat.paiseToInrOrDash(v)
                 }
             }
         }
@@ -111,14 +121,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val total = cats.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(container.context)
         for (c in cats) {
-            val row = inflater.inflate(R.layout.item_category_legend, container, false)
-            val color = runCatching { Color.parseColor(c.colorHex) }.getOrElse { Color.GRAY }
-            val dot = row.findViewById<View>(R.id.color_dot)
-            (dot.background as? GradientDrawable)?.setColor(color) ?: dot.setBackgroundColor(color)
-            row.findViewById<TextView>(R.id.name).text = c.name
-            row.findViewById<TextView>(R.id.amount).text = CurrencyFormat.paiseToInr(c.totalPaise)
-            val pct = ((c.totalPaise.toDouble() / total.toDouble()) * 100.0).toInt()
-            row.findViewById<TextView>(R.id.percent).text = "$pct%"
+            val row = inflater.inflate(R.layout.item_category_progress, container, false)
+            CategoryProgressBinder.bind(row, c.name, c.colorHex, c.totalPaise, total)
             container.addView(row)
         }
     }

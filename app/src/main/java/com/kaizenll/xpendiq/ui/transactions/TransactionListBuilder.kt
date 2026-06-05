@@ -7,28 +7,26 @@ import com.kaizenll.xpendiq.util.DateFormat
 object TransactionListBuilder {
 
     /**
-     * Convert a date-sorted list of transactions + a category lookup into
-     * a flat list of `Header` and `Row` items grouped by calendar day.
+     * Convert a date-sorted list of transactions + a category lookup into one [DaySection]
+     * per calendar day. Each section carries its rows + daily total so the adapter can render
+     * a filled card per day.
      */
     fun build(
         transactions: List<TransactionEntity>,
         categories: List<Category>,
-    ): List<TransactionListItem> {
+    ): List<DaySection> {
         if (transactions.isEmpty()) return emptyList()
         val byId = categories.associateBy { it.id }
         val grouped = transactions.groupBy { DateFormat.dayKey(it.occurredAt) }
-        val out = ArrayList<TransactionListItem>(transactions.size + grouped.size)
+        val out = ArrayList<DaySection>(grouped.size)
         for ((dayKey, dayTxns) in grouped) {
             val first = dayTxns.first()
-            val total = dayTxns.sumOf { it.amountPaise }
-            out += TransactionListItem.Header(
+            out += DaySection(
                 dayKey = dayKey,
                 label = DateFormat.headerForDay(first.occurredAt),
-                totalAmountPaise = total,
+                totalAmountPaise = dayTxns.sumOf { it.amountPaise },
+                rows = dayTxns.map { TransactionListItem.Row(it, byId[it.categoryId]) },
             )
-            for (t in dayTxns) {
-                out += TransactionListItem.Row(t, byId[t.categoryId])
-            }
         }
         return out
     }

@@ -11,6 +11,12 @@ object CurrencyFormat {
     /** Backwards-compatible: assumes INR. */
     fun paiseToInr(amountPaise: Long): String = format(amountPaise, "INR")
 
+    /** Like [paiseToInr] but renders an em dash for zero, so empty stats don't read as broken. */
+    fun paiseToInrOrDash(amountPaise: Long): String = if (amountPaise == 0L) "—" else paiseToInr(amountPaise)
+
+    /** INR rounded to whole rupees, no paise — for compact headline figures (e.g. donut centre). */
+    fun paiseToInrWhole(amountPaise: Long): String = "₹${inrFormat.format((amountPaise + 50) / 100)}"
+
     /** Format any supported currency, falling back to the raw 3-letter code prefix. */
     fun format(amountMinor: Long, currency: String): String {
         val (whole, minor, formatter, symbol) = when (currency.uppercase()) {

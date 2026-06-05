@@ -5,16 +5,19 @@ import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import com.google.android.material.color.MaterialColors
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.Category
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
+import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.DateFormat
 
 /**
  * Renders an `item_transaction.xml` row from a [TransactionEntity] + optional [Category].
- * Shared by the Transactions list adapter and the Recent-transactions block on Home so the
- * row styling (tinted category chip etc.) stays in one place.
+ * Shared by the Transactions list adapter, the Recent block on Home, and the Uncategorized
+ * list, so row styling (avatar, tinted chip, color-coded amount) stays in one place.
  */
 object TransactionRowBinder {
 
@@ -29,30 +32,96 @@ object TransactionRowBinder {
         val categoryView = view.findViewById<TextView>(R.id.category)
         val dateTimeView = view.findViewById<TextView>(R.id.date_time)
         val paymentModeView = view.findViewById<TextView>(R.id.payment_mode)
+        val avatarView = view.findViewById<TextView>(R.id.avatar)
+        val fxFlagView = view.findViewById<TextView>(R.id.fx_flag)
 
-        merchantView.text = txn.merchantRaw?.takeIf { it.isNotBlank() } ?: "Unknown"
-        amountView.text = CurrencyFormat.format(txn.amountPaise, txn.currency)
-        categoryView.text = category?.name ?: "—"
+        val merchant = txn.merchantRaw?.takeIf { it.isNotBlank() } ?: "Unknown"
+        merchantView.text = merchant
         dateTimeView.text = DateFormat.row(txn.occurredAt)
         paymentModeView.text = txn.paymentMode.name.replace('_', ' ')
 
-        val colorHex = category?.colorHex
-        if (colorHex != null) {
-            val color = runCatching { Color.parseColor(colorHex) }.getOrElse { Color.GRAY }
-            val cornerPx = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics,
-            )
-            val bg = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = cornerPx
-                setColor((color and 0x00FFFFFF) or 0x33000000)  // 20% alpha
-            }
-            categoryView.background = bg
-            categoryView.setTextColor(color)
-        } else {
-            categoryView.setBackgroundResource(R.drawable.bg_chip)
+        val categoryColor = category?.colorHex?.let { hex ->
+            runCatching { Color.parseColor(hex) }.getOrNull()
         }
+
+        bindCategoryChip(categoryView, category, categoryColor)
+        bindAvatar(avatarView, merchant, categoryColor)
+        bindAmount(amountView, txn)
+        bindFxFlag(fxFlagView, txn)
 
         view.setOnClickListener { if (onClick != null) onClick(txn) }
     }
+
+    private fun bindCategoryChip(categoryView: TextView, category: Category?, color: Int?) {
+        categoryView.text = category?.name ?: "—"
+        if (color != null) {
+            categoryView.background = roundedFill(categoryView, 8f, (color and 0x00FFFFFF) or 0x33000000)
+            categoryView.setTextColor(color)
+        } else {
+            categoryView.setBackgroundResource(R.drawable.bg_chip)
+            categoryView.setTextColor(neutralOnVariant(categoryView))
+        }
+    }
+
+    private fun bindAvatar(avatarView: TextView, merchant: String, color: Int?) {
+        val initial = merchant.firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "?"
+        avatarView.text = initial
+        val bg = GradientDrawable().apply { shape = GradientDrawable.OVAL }
+        if (color != null) {
+            bg.setColor((color and 0x00FFFFFF) or 0x38000000) // ~22% alpha tint
+            avatarView.setTextColor(color)
+        } else {
+            bg.setColor(neutralSurfaceVariant(avatarView))
+            avatarView.setTextColor(neutralOnVariant(avatarView))
+        }
+        avatarView.background = bg
+    }
+
+    private fun bindAmount(amountView: TextView, txn: TransactionEntity) {
+        val formatted = CurrencyFormat.format(txn.amountPaise, txn.currency)
+        val ctx = amountView.context
+        when (txn.type) {
+            TransactionType.CREDIT -> {
+                amountView.text = "+$formatted"
+                amountView.setTextColor(ContextCompat.getColor(ctx, R.color.money_credit))
+            }
+            TransactionType.INVESTMENT -> {
+                amountView.text = formatted
+                amountView.setTextColor(ContextCompat.getColor(ctx, R.color.money_investment))
+            }
+            TransactionType.DEBIT -> {
+                amountView.text = formatted
+                amountView.setTextColor(neutralOnSurface(amountView))
+            }
+        }
+    }
+
+    private fun bindFxFlag(fxFlagView: TextView, txn: TransactionEntity) {
+        if (txn.currency.equals("INR", ignoreCase = true)) {
+            fxFlagView.visibility = View.GONE
+        } else {
+            fxFlagView.visibility = View.VISIBLE
+            fxFlagView.text = txn.currency.uppercase()
+        }
+    }
+
+    private fun roundedFill(view: View, cornerDp: Float, color: Int): GradientDrawable {
+        val cornerPx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, cornerDp, view.resources.displayMetrics,
+        )
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = cornerPx
+            setColor(color)
+        }
+    }
+
+    private fun neutralOnSurface(view: View): Int =
+        MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnSurface)
+
+    private fun neutralOnVariant(view: View): Int =
+        MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnSurfaceVariant)
+
+    private fun neutralSurfaceVariant(view: View): Int =
+        MaterialColors.getColor(view, com.google.android.material.R.attr.colorSurfaceVariant)
 }

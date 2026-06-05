@@ -30,7 +30,7 @@ class TransactionsViewModel(app: Application) : AndroidViewModel(app) {
     private val ccPaymentIdFlow: Flow<Long> = HiddenCategories.ccPaymentCategoryIdFlow(categoryDao)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val items: StateFlow<List<TransactionListItem>> =
+    val items: StateFlow<List<DaySection>> =
         combine(_selectedType, ccPaymentIdFlow) { type, excludeId -> type to excludeId }
             .flatMapLatest { (type, excludeId) ->
                 // For CREDIT, hide the CC-bill-payment bucket (it's an internal transfer, not income).

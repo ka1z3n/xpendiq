@@ -23,9 +23,8 @@ class UncategorizedFragment : Fragment(R.layout.fragment_uncategorized) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
 
         val recycler = view.findViewById<RecyclerView>(R.id.recycler)
         val empty = view.findViewById<View>(R.id.empty)
@@ -55,6 +54,7 @@ class UncategorizedFragment : Fragment(R.layout.fragment_uncategorized) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.items.collect { txns ->
                     adapter.submitList(txns)
+                    toolbar.title = getString(R.string.uncat_header_count, txns.size)
                     empty.visibility = if (txns.isEmpty()) View.VISIBLE else View.GONE
                     recycler.visibility = if (txns.isEmpty()) View.GONE else View.VISIBLE
                 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brighter, legible on dark surfaces. -->
+    <color name="money_credit">#7FD89C</color>
+    <color name="money_investment">#B0A0E0</color>
+</resources>

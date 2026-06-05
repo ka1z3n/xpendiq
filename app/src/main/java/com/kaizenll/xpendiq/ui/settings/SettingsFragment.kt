@@ -1,12 +1,15 @@
 package com.kaizenll.xpendiq.ui.settings
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,6 +23,7 @@ import com.kaizenll.xpendiq.util.NotificationAccess
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.kaizenll.xpendiq.work.BackfillWorker
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
@@ -64,6 +68,13 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             NotificationAccess.openSettings(requireContext())
         }
 
+        val versionName = runCatching {
+            requireContext().packageManager
+                .getPackageInfo(requireContext().packageName, 0).versionName
+        }.getOrNull() ?: "—"
+        view.findViewById<TextView>(R.id.version_text).text =
+            getString(R.string.settings_version, versionName)
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.backfillStatus.collect { infos ->
@@ -82,10 +93,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private fun refreshPermissionStatus() {
         val view = view ?: return
         val granted = SmsPermissions.smsGranted(requireContext())
-        view.findViewById<TextView>(R.id.permission_status).setText(
-            if (granted) R.string.settings_permission_granted
-            else R.string.settings_permission_missing
-        )
+        bindStatusPill(view.findViewById(R.id.permission_status), granted)
         view.findViewById<MaterialButton>(R.id.grant_btn).visibility =
             if (granted) View.GONE else View.VISIBLE
         view.findViewById<MaterialButton>(R.id.backfill_btn).isEnabled = granted
@@ -94,12 +102,21 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private fun refreshNotificationAccessStatus() {
         val view = view ?: return
         val granted = NotificationAccess.isGranted(requireContext())
-        view.findViewById<TextView>(R.id.notif_status).setText(
-            if (granted) R.string.settings_notif_granted
-            else R.string.settings_notif_missing
-        )
+        bindStatusPill(view.findViewById(R.id.notif_status), granted)
         view.findViewById<MaterialButton>(R.id.notif_grant_btn).visibility =
             if (granted) View.GONE else View.VISIBLE
+    }
+
+    /** Green "Granted" pill, or an error-red "Not granted" pill. */
+    private fun bindStatusPill(pill: TextView, granted: Boolean) {
+        val bg = if (granted) {
+            ContextCompat.getColor(pill.context, R.color.money_credit)
+        } else {
+            MaterialColors.getColor(pill, com.google.android.material.R.attr.colorError)
+        }
+        pill.setText(if (granted) R.string.settings_status_granted else R.string.settings_status_missing)
+        pill.backgroundTintList = ColorStateList.valueOf(bg)
+        pill.setTextColor(Color.WHITE)
     }
 
     private fun confirmAndStart() {
