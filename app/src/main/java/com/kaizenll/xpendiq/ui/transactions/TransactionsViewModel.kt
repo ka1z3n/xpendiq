@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.Category
+import com.kaizenll.xpendiq.data.entity.PaymentMode
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
 import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.data.repo.HiddenCategories
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,6 +34,10 @@ class TransactionsViewModel(app: Application) : AndroidViewModel(app) {
     private val _categoryFilter = MutableStateFlow<Set<Long>>(emptySet())
     val categoryFilter: StateFlow<Set<Long>> = _categoryFilter
 
+    /** Payment modes to keep. Empty = no filter (show all). Reset whenever the tab changes. */
+    private val _paymentFilter = MutableStateFlow<Set<PaymentMode>>(emptySet())
+    val paymentFilter: StateFlow<Set<PaymentMode>> = _paymentFilter
+
     private val ccPaymentIdFlow: Flow<Long> = HiddenCategories.ccPaymentCategoryIdFlow(categoryDao)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -47,8 +53,15 @@ class TransactionsViewModel(app: Application) : AndroidViewModel(app) {
             }
 
     val items: StateFlow<List<DaySection>> =
-        combine(txnsForType, categoryDao.observeAll(), _categoryFilter) { txns, cats, filter ->
-            val visible = if (filter.isEmpty()) txns else txns.filter { it.categoryId in filter }
+        combine(
+            txnsForType,
+            categoryDao.observeAll(),
+            _categoryFilter,
+            _paymentFilter,
+        ) { txns, cats, catFilter, payFilter ->
+            var visible = txns
+            if (catFilter.isNotEmpty()) visible = visible.filter { it.categoryId in catFilter }
+            if (payFilter.isNotEmpty()) visible = visible.filter { it.paymentMode in payFilter }
             TransactionListBuilder.build(visible, cats)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -63,18 +76,33 @@ class TransactionsViewModel(app: Application) : AndroidViewModel(app) {
                 .sortedBy { it.sortOrder }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /**
+     * Payment modes that actually occur in the current tab's transactions, in enum order. Derived
+     * from the data (no dead filters) and started eagerly so the filter sheet can read [value].
+     */
+    val availablePaymentModes: StateFlow<List<PaymentMode>> =
+        txnsForType.map { txns ->
+            val present = txns.mapTo(mutableSetOf()) { it.paymentMode }
+            PaymentMode.values().filter { it != PaymentMode.UNKNOWN && it in present }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     fun setSelectedType(type: TransactionType) {
         if (_selectedType.value == type) return
         _selectedType.value = type
-        _categoryFilter.value = emptySet() // categories differ per tab; start fresh
-    }
-
-    fun setCategoryFilter(ids: Set<Long>) {
-        _categoryFilter.value = ids
-    }
-
-    fun clearCategoryFilter() {
+        // Filters are scoped to the tab's data; start fresh on switch.
         _categoryFilter.value = emptySet()
+        _paymentFilter.value = emptySet()
+    }
+
+    /** Apply both filter dimensions at once (from the filter sheet's Apply button). */
+    fun setFilters(categories: Set<Long>, paymentModes: Set<PaymentMode>) {
+        _categoryFilter.value = categories
+        _paymentFilter.value = paymentModes
+    }
+
+    fun clearFilters() {
+        _categoryFilter.value = emptySet()
+        _paymentFilter.value = emptySet()
     }
 
     fun delete(txn: TransactionEntity) {

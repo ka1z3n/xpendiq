@@ -16,9 +16,10 @@
     <string name="tab_spends">Spends</string>
     <string name="tab_credits">Credits</string>
     <string name="transactions_filter">Filter</string>
-    <string name="filter_title">Filter transactions</string>
-    <string name="filter_all_categories">All categories</string>
-    <string name="filter_clear">Clear</string>
+    <string name="filter_sheet_title">Filters</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_group_category">Category</string>
+    <string name="filter_group_payment">Payment mode</string>
     <string name="filter_apply">Apply</string>
 
     <string name="permission_sms_rationale">Xpendiq reads transactional SMS from your bank to build your spend list. Messages stay on your phone.</string>

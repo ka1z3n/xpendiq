@@ -3,14 +3,12 @@ package com.kaizenll.xpendiq.ui.transactions
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.navOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
@@ -20,6 +18,7 @@ import com.kaizenll.xpendiq.util.Motion
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
@@ -45,7 +44,9 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
         btnSpends.setOnClickListener { viewModel.setSelectedType(TransactionType.DEBIT) }
         btnCredits.setOnClickListener { viewModel.setSelectedType(TransactionType.CREDIT) }
 
-        filterBtn.setOnClickListener { showFilterDialog() }
+        filterBtn.setOnClickListener {
+            TransactionFilterSheet().show(childFragmentManager, "txn_filter")
+        }
 
         view.findViewById<FloatingActionButton>(R.id.add_fab).setOnClickListener {
             findNavController().navigate(R.id.editTransactionFragment, null, EDIT_NAV_OPTIONS)
@@ -85,11 +86,13 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
         }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.categoryFilter.collect { ids ->
-                    filterBtn.text = if (ids.isEmpty()) {
+                combine(viewModel.categoryFilter, viewModel.paymentFilter) { cats, modes ->
+                    cats.size + modes.size
+                }.collect { count ->
+                    filterBtn.text = if (count == 0) {
                         getString(R.string.transactions_filter)
                     } else {
-                        getString(R.string.transactions_filter) + " (${ids.size})"
+                        getString(R.string.transactions_filter) + " ($count)"
                     }
                 }
             }
@@ -106,23 +109,4 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
         tv.setTextColor(MaterialColors.getColor(tv, attr))
     }
 
-    private fun showFilterDialog() {
-        val cats = viewModel.availableCategories.value
-        if (cats.isEmpty()) return
-
-        val active = viewModel.categoryFilter.value
-        val names = cats.map { it.name }.toTypedArray()
-        val checked = BooleanArray(cats.size) { cats[it].id in active }
-
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.filter_title)
-            .setMultiChoiceItems(names, checked) { _, which, isChecked -> checked[which] = isChecked }
-            .setNeutralButton(R.string.filter_clear) { _, _ -> viewModel.clearCategoryFilter() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.filter_apply) { _, _ ->
-                val selected = cats.filterIndexed { i, _ -> checked[i] }.map { it.id }.toSet()
-                viewModel.setCategoryFilter(selected)
-            }
-            .show()
-    }
 }
