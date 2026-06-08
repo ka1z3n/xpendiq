@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.data.repo.HiddenCategories
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
@@ -72,8 +73,19 @@ class InsightsViewModel(app: Application) : AndroidViewModel(app) {
                 bars = bars,
                 credited = credited,
                 invested = invested,
+                dailyAverage = dailyAverage(month, spent),
             )
         }
+    }
+
+    /**
+     * Spend per day. For the current month we divide by days elapsed so the average isn't
+     * deflated by days that haven't happened yet; past months use their full length.
+     */
+    private fun dailyAverage(month: YearMonth, spent: Long): Long {
+        val today = LocalDate.now(zone)
+        val days = if (month == YearMonth.from(today)) today.dayOfMonth else month.lengthOfMonth()
+        return if (days > 0) spent / days else 0L
     }
 
     private fun categoryBars(start: Long, end: Long): kotlinx.coroutines.flow.Flow<List<CategoryBar>> =
@@ -106,6 +118,7 @@ data class InsightsUi(
     val bars: List<CategoryBar>,
     val credited: Long,
     val invested: Long,
+    val dailyAverage: Long,
 ) {
     companion object {
         fun empty(month: YearMonth): InsightsUi = InsightsUi(
@@ -115,6 +128,7 @@ data class InsightsUi(
             bars = emptyList(),
             credited = 0L,
             invested = 0L,
+            dailyAverage = 0L,
         )
     }
 }

@@ -15,7 +15,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.ui.insights.CategoryBar
-import com.kaizenll.xpendiq.ui.insights.CategoryProgressBinder
 import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import com.kaizenll.xpendiq.ui.transactions.TransactionRowBinder
@@ -70,9 +69,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val tv = view.findViewById<TextView>(R.id.month_total)
                     if (!monthTotalShown && v > 0L) {
                         monthTotalShown = true
-                        Motion.countUpRupees(tv, v, whole = false)
+                        Motion.countUpRupees(tv, v, whole = true)
                     } else {
-                        tv.text = CurrencyFormat.paiseToInr(v)
+                        tv.text = CurrencyFormat.paiseToInrWhole(v)
                     }
                 }
             }
@@ -126,11 +125,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         card.visibility = View.VISIBLE
 
-        val total = cats.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(container.context)
-        for ((i, c) in cats.withIndex()) {
-            val row = inflater.inflate(R.layout.item_category_progress, container, false)
-            CategoryProgressBinder.bind(row, c.name, c.colorHex, c.totalPaise, total, animate = true, index = i)
+        for (c in cats) {
+            val row = inflater.inflate(R.layout.item_category_legend, container, false)
+            val color = runCatching { android.graphics.Color.parseColor(c.colorHex) }
+                .getOrElse { android.graphics.Color.GRAY }
+            val dot = row.findViewById<View>(R.id.color_dot)
+            (dot.background?.mutate() as? android.graphics.drawable.GradientDrawable)?.setColor(color)
+                ?: dot.setBackgroundColor(color)
+            row.findViewById<TextView>(R.id.name).text = c.name
+            row.findViewById<TextView>(R.id.value).text = CurrencyFormat.paiseToInr(c.totalPaise)
             container.addView(row)
         }
     }

@@ -30,14 +30,18 @@ object TransactionRowBinder {
         val merchantView = view.findViewById<TextView>(R.id.merchant)
         val amountView = view.findViewById<TextView>(R.id.amount)
         val categoryView = view.findViewById<TextView>(R.id.category)
-        val dateTimeView = view.findViewById<TextView>(R.id.date_time)
+        val timeView = view.findViewById<TextView>(R.id.time)
         val paymentModeView = view.findViewById<TextView>(R.id.payment_mode)
         val avatarView = view.findViewById<TextView>(R.id.avatar)
         val fxFlagView = view.findViewById<TextView>(R.id.fx_flag)
 
         val merchant = txn.merchantRaw?.takeIf { it.isNotBlank() } ?: "Unknown"
         merchantView.text = merchant
-        dateTimeView.text = DateFormat.row(txn.occurredAt)
+        // The day is already the section header; show only the clock time, and hide it when the
+        // SMS had no time (midnight) so we never render a misleading "00:00".
+        val time = DateFormat.timeOfDay(txn.occurredAt)
+        timeView.text = time ?: ""
+        timeView.visibility = if (time == null) View.GONE else View.VISIBLE
         paymentModeView.text = txn.paymentMode.name.replace('_', ' ')
 
         val categoryColor = category?.colorHex?.let { hex ->

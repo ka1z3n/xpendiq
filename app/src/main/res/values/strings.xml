@@ -15,6 +15,11 @@
 
     <string name="tab_spends">Spends</string>
     <string name="tab_credits">Credits</string>
+    <string name="transactions_filter">Filter</string>
+    <string name="filter_title">Filter transactions</string>
+    <string name="filter_all_categories">All categories</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_apply">Apply</string>
 
     <string name="permission_sms_rationale">Xpendiq reads transactional SMS from your bank to build your spend list. Messages stay on your phone.</string>
     <string name="grant_sms_permission">Grant SMS permission</string>
@@ -54,6 +59,12 @@
     <string name="onb_backfill_skip">Not now</string>
 
     <string name="insights_spent_label">Spent</string>
+    <string name="insights_total_spent">Total spent</string>
+    <string name="insights_daily_avg">Daily avg</string>
+    <string name="insights_vs_month">Vs %1$s</string>
+    <string name="insights_delta_pct">%1$s %2$d%%</string>
+    <string name="insights_prev_month">Previous month</string>
+    <string name="insights_next_month">Next month</string>
     <string name="insights_by_category">By category</string>
     <string name="insights_bars_empty">Nothing tracked this month yet.</string>
     <string name="insights_mom">%1$s %2$d%% vs %3$s</string>
@@ -154,4 +165,14 @@
     <string name="edit_amount_invalid">Enter a valid amount</string>
     <string name="edit_not_found">Transaction no longer exists</string>
     <string name="edit_no_sms_body">(no SMS body stored)</string>
+    <string name="edit_merchant_hint">e.g. Starbucks Coffee</string>
+    <string name="edit_save_transaction">Save transaction</string>
+    <string name="edit_when">Date</string>
+    <string name="edit_type_investments">Investments</string>
+    <string name="pm_upi">UPI</string>
+    <string name="pm_credit">Credit</string>
+    <string name="pm_debit">Debit</string>
+    <string name="pm_bank">Bank</string>
+    <string name="pm_auto">Auto</string>
+    <string name="pm_cash">Cash</string>
 </resources>

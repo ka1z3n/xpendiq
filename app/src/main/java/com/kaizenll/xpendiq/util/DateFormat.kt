@@ -28,6 +28,17 @@ object DateFormat {
         }
     }
 
+    /**
+     * Just the clock time ("14:02"), or null when the timestamp landed exactly on midnight —
+     * the marker for an SMS we parsed with a date but no time. Callers hide the field rather
+     * than show a misleading "00:00".
+     */
+    fun timeOfDay(epochMillis: Long): String? {
+        val ldt = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), zone)
+        if (ldt.hour == 0 && ldt.minute == 0) return null
+        return ldt.format(timeFmt)
+    }
+
     /** Section header: "Today" / "Yesterday" / "23 May" / "12 Jan 2025". */
     fun headerForDay(epochMillis: Long): String {
         val date = Instant.ofEpochMilli(epochMillis).atZone(zone).toLocalDate()

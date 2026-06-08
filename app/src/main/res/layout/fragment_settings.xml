@@ -23,9 +23,11 @@
             android:paddingBottom="4dp">
 
             <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_logo_tile"
                 android:contentDescription="@string/app_name"
+                android:padding="9dp"
                 android:src="@drawable/ic_brand_mark" />
 
             <TextView

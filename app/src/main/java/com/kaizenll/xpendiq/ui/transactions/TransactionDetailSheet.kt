@@ -81,6 +81,7 @@ class TransactionDetailSheet : BottomSheetDialogFragment() {
             controller.navigate(
                 R.id.editTransactionFragment,
                 bundleOf("txnId" to txn.id),
+                EDIT_NAV_OPTIONS,
             )
             dismiss()
         }

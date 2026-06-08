@@ -10,148 +10,291 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:title="@string/edit_title"
-        app:menu="@menu/menu_edit_transaction"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        android:title="@string/edit_add_title"
+        app:navigationIcon="@drawable/ic_arrow_back" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp">
 
-            <!-- Type dropdown (shown only when adding; immutable when editing). -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/type_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <!-- Type segmented control (Add mode only) — pill track with a filled selected segment -->
+            <LinearLayout
+                android:id="@+id/type_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/edit_type"
+                android:background="@drawable/bg_segmented_track"
+                android:orientation="horizontal"
+                android:padding="4dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/type"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/btn_type_spends"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="none" />
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="@string/tab_spends"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    android:id="@+id/btn_type_credits"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="@string/tab_credits"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/amount_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/btn_type_investments"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="@string/edit_type_investments"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
+
+            <!-- Currency pill -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/currency_btn"
+                style="@style/Widget.Material3.Button.TonalButton.Icon"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/edit_amount"
-                app:prefixText="₹">
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:minHeight="0dp"
+                android:paddingVertical="6dp"
+                app:icon="@drawable/ic_arrow_drop_down"
+                app:iconGravity="textEnd"
+                app:iconSize="18dp"
+                tools:text="₹ INR" />
 
-                <com.google.android.material.textfield.TextInputEditText
+            <!-- Big amount input -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/amount_symbol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="2dp"
+                    android:text="₹"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="34sp" />
+
+                <EditText
                     android:id="@+id/amount"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal" />
+                    android:background="@null"
+                    android:gravity="center"
+                    android:hint="0"
+                    android:importantForAutofill="no"
+                    android:inputType="numberDecimal"
+                    android:maxLines="1"
+                    android:minWidth="64dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    tools:text="485" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/edit_currency">
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:letterSpacing="0.08"
+                android:text="@string/edit_amount"
+                android:textAllCaps="true"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/currency"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
+            <!-- Merchant -->
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:id="@+id/merchant_layout"
+                style="@style/Widget.Material3.TextInputLayout.FilledBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/edit_merchant">
+                android:layout_marginTop="24dp"
+                android:hint="@string/edit_merchant"
+                app:startIconDrawable="@drawable/ic_store">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/merchant"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapWords" />
+                    android:inputType="textCapWords"
+                    app:placeholderText="@string/edit_merchant_hint" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <!-- Category -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/edit_category">
+                android:layout_marginTop="20dp"
+                android:letterSpacing="0.08"
+                android:text="@string/edit_category"
+                android:textAllCaps="true"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/category"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/category_chips"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/edit_payment_mode">
+                android:layout_marginTop="8dp"
+                app:selectionRequired="true"
+                app:singleSelection="true" />
 
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/payment_mode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+            <!-- Payment mode -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:letterSpacing="0.08"
+                android:text="@string/edit_payment_mode"
+                android:textAllCaps="true"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <LinearLayout
+                android:id="@+id/payment_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/date_btn"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <TextView
+                    android:id="@+id/pm_upi"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    tools:text="23 May 2026" />
+                    android:background="@drawable/bg_pm_box"
+                    android:clickable="true"
+                    android:drawableTop="@drawable/ic_pm_upi"
+                    android:drawablePadding="5dp"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="11dp"
+                    android:text="@string/pm_upi"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="11sp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/time_btn"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <TextView
+                    android:id="@+id/pm_credit"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    tools:text="18:42" />
+                    android:background="@drawable/bg_pm_box"
+                    android:clickable="true"
+                    android:drawableTop="@drawable/ic_pm_card"
+                    android:drawablePadding="5dp"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="11dp"
+                    android:text="@string/pm_credit"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/pm_debit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pm_box"
+                    android:clickable="true"
+                    android:drawableTop="@drawable/ic_pm_card"
+                    android:drawablePadding="5dp"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="11dp"
+                    android:text="@string/pm_debit"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/pm_cash"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_pm_box"
+                    android:clickable="true"
+                    android:drawableTop="@drawable/ic_pm_cash"
+                    android:drawablePadding="5dp"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingVertical="11dp"
+                    android:text="@string/pm_cash"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="11sp" />
 
             </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <!-- Date -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="20dp"
+                android:letterSpacing="0.08"
+                android:text="@string/edit_when"
+                android:textAllCaps="true"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/date_btn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:icon="@drawable/ic_calendar"
+                app:iconGravity="textStart"
+                tools:text="23 May 2026" />
+
+            <!-- Notes -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:hint="@string/edit_notes">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -164,6 +307,7 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Source SMS (Edit mode only) -->
             <LinearLayout
                 android:id="@+id/sms_section"
                 android:layout_width="match_parent"
@@ -188,12 +332,26 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurface"
                     android:textIsSelectable="true"
-                    tools:text="Sent Rs.60.00\nFrom HDFC Bank A/C *1234\nTo Ramesh Kumar" />
+                    tools:text="Sent Rs.60.00\nFrom HDFC Bank A/C *1234" />
 
             </LinearLayout>
 
         </LinearLayout>
 
     </ScrollView>
+
+    <!-- Pinned save button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/save_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:paddingVertical="14dp"
+        android:text="@string/edit_save_transaction"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:icon="@drawable/ic_save"
+        app:iconGravity="textStart" />
 
 </LinearLayout>

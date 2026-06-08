@@ -16,9 +16,11 @@
         android:paddingBottom="8dp">
 
         <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_logo_tile"
             android:contentDescription="@string/app_name"
+            android:padding="9dp"
             android:src="@drawable/ic_brand_mark" />
 
         <TextView
@@ -30,26 +32,54 @@
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filter_btn"
+            style="@style/Widget.Material3.Button.TonalButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/transactions_filter"
+            app:icon="@drawable/ic_filter"
+            app:iconSize="18dp" />
+
     </LinearLayout>
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabs"
+    <LinearLayout
+        android:id="@+id/type_toggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabMode="fixed"
-        app:tabGravity="fill">
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_segmented_track"
+        android:orientation="horizontal"
+        android:padding="4dp">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/btn_spends"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/tab_spends" />
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingVertical="9dp"
+            android:text="@string/tab_spends"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/btn_credits"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/tab_credits" />
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingVertical="9dp"
+            android:text="@string/tab_credits"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
-    </com.google.android.material.tabs.TabLayout>
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"

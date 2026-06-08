@@ -23,9 +23,11 @@
             android:paddingBottom="8dp">
 
             <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_logo_tile"
                 android:contentDescription="@string/app_name"
+                android:padding="9dp"
                 android:src="@drawable/ic_brand_mark" />
 
             <TextView
@@ -96,7 +98,7 @@
             android:focusable="true"
             android:stateListAnimator="@animator/card_press"
             android:visibility="gone"
-            app:cardBackgroundColor="?attr/colorSecondaryContainer"
+            app:cardBackgroundColor="?attr/colorTertiaryContainer"
             app:strokeWidth="0dp"
             tools:visibility="visible">
 
@@ -113,7 +115,7 @@
                     android:layout_marginEnd="14dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_forum"
-                    app:tint="?attr/colorOnSecondaryContainer" />
+                    app:tint="?attr/colorOnTertiaryContainer" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -126,7 +128,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
-                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:textColor="?attr/colorOnTertiaryContainer"
                         tools:text="12 to categorize" />
 
                     <TextView
@@ -134,7 +136,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/home_uncat_hint"
                         android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSecondaryContainer" />
+                        android:textColor="?attr/colorOnTertiaryContainer" />
 
                 </LinearLayout>
 
@@ -144,7 +146,7 @@
                     android:layout_marginStart="8dp"
                     android:contentDescription="@string/home_uncat_cta"
                     android:src="@drawable/ic_chevron_right"
-                    app:tint="?attr/colorOnSecondaryContainer" />
+                    app:tint="?attr/colorOnTertiaryContainer" />
 
             </LinearLayout>
 

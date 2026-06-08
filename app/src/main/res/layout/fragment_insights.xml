@@ -22,9 +22,11 @@
             android:paddingBottom="4dp">
 
             <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_logo_tile"
                 android:contentDescription="@string/app_name"
+                android:padding="9dp"
                 android:src="@drawable/ic_brand_mark" />
 
             <TextView
@@ -38,61 +40,63 @@
 
         </LinearLayout>
 
-        <!-- Main insights card: month nav, donut + centre total, MoM delta, legend -->
+        <!-- Month picker — outside the card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/prev_btn"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/insights_prev_month"
+                app:icon="@drawable/ic_chevron_left" />
+
+            <TextView
+                android:id="@+id/month_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="June 2026" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/next_btn"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/insights_next_month"
+                app:icon="@drawable/ic_chevron_right" />
+
+        </LinearLayout>
+
+        <!-- Donut + legend card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
-
-                <!-- Month picker -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/prev_btn"
-                        style="@style/Widget.Material3.Button.IconButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:icon="@android:drawable/ic_media_previous" />
-
-                    <TextView
-                        android:id="@+id/month_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
-                        android:textColor="?attr/colorOnSurface"
-                        tools:text="May 2026" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/next_btn"
-                        style="@style/Widget.Material3.Button.IconButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:icon="@android:drawable/ic_media_next" />
-
-                </LinearLayout>
+                android:padding="20dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
+                    android:layout_height="wrap_content">
 
                     <com.kaizenll.xpendiq.ui.insights.CategoryPieView
                         android:id="@+id/pie"
                         android:layout_width="match_parent"
-                        android:layout_height="180dp" />
+                        android:layout_height="220dp" />
 
                     <LinearLayout
                         android:id="@+id/donut_center"
@@ -105,15 +109,18 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/insights_spent_label"
-                            android:textAppearance="?attr/textAppearanceLabelMedium"
+                            android:letterSpacing="0.06"
+                            android:text="@string/insights_total_spent"
+                            android:textAllCaps="true"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <TextView
                             android:id="@+id/donut_total"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:layout_marginTop="2dp"
+                            android:textAppearance="?attr/textAppearanceHeadlineSmall"
                             android:textColor="?attr/colorOnSurface"
                             tools:text="₹56,523" />
 
@@ -121,21 +128,11 @@
 
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/mom_delta"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="▲ 23% vs Apr" />
-
                 <LinearLayout
                     android:id="@+id/legend_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="vertical" />
 
                 <TextView
@@ -154,7 +151,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Side cards: credited + invested -->
+        <!-- Bottom stat cards: vs previous month + daily average -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -176,20 +173,23 @@
                     android:padding="14dp">
 
                     <TextView
+                        android:id="@+id/vs_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/home_received"
-                        android:textAppearance="?attr/textAppearanceLabelMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:letterSpacing="0.06"
+                        android:textAllCaps="true"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="Vs May" />
 
                     <TextView
-                        android:id="@+id/credited"
+                        android:id="@+id/vs_value"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorOnSurface"
-                        tools:text="₹0" />
+                        tools:text="▼ 8%" />
 
                 </LinearLayout>
 
@@ -211,18 +211,20 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/home_invested"
-                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:letterSpacing="0.06"
+                        android:text="@string/insights_daily_avg"
+                        android:textAllCaps="true"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <TextView
-                        android:id="@+id/invested"
+                        android:id="@+id/daily_avg"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorOnSurface"
-                        tools:text="₹0" />
+                        tools:text="₹1,884" />
 
                 </LinearLayout>
 

@@ -1,6 +1,7 @@
 package com.kaizenll.xpendiq.ui.insights
 
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -48,17 +49,11 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
 
     private fun renderState(view: View, ui: InsightsUi) {
         view.findViewById<TextView>(R.id.month_label).text = ui.month.format(monthFmt)
-        view.findViewById<TextView>(R.id.mom_delta).text = formatDelta(ui)
         view.findViewById<TextView>(R.id.donut_total).text = CurrencyFormat.paiseToInrWhole(ui.totalSpent)
 
-        view.findViewById<TextView>(R.id.credited).apply {
-            text = CurrencyFormat.paiseToInrOrDash(ui.credited)
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.money_credit))
-        }
-        view.findViewById<TextView>(R.id.invested).apply {
-            text = CurrencyFormat.paiseToInrOrDash(ui.invested)
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.money_investment))
-        }
+        bindDelta(view, ui)
+        view.findViewById<TextView>(R.id.daily_avg).text =
+            CurrencyFormat.paiseToInrOrDash(ui.dailyAverage)
 
         bindPie(
             view.findViewById(R.id.pie),
@@ -69,20 +64,41 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
         )
     }
 
-    private fun formatDelta(ui: InsightsUi): String {
-        val prev = ui.previousTotal
-        val curr = ui.totalSpent
+    /** "Vs May" label + a coloured ▲/▼ delta. Down on spending reads green, up reads red. */
+    private fun bindDelta(view: View, ui: InsightsUi) {
         val prevMonth = ui.month.minusMonths(1).format(shortMonthFmt)
-        if (prev <= 0L) return getString(R.string.insights_no_prev_compare, prevMonth)
-        val diff = curr - prev
-        val pct = (diff.toDouble() / prev.toDouble()) * 100.0
-        val arrow = when {
-            diff > 0 -> "▲"
-            diff < 0 -> "▼"
-            else -> "="
+        view.findViewById<TextView>(R.id.vs_label).text =
+            getString(R.string.insights_vs_month, prevMonth)
+
+        val valueView = view.findViewById<TextView>(R.id.vs_value)
+        val prev = ui.previousTotal
+        if (prev <= 0L) {
+            valueView.text = "—"
+            valueView.setTextColor(neutralColor())
+            return
         }
-        return getString(R.string.insights_mom, arrow, kotlin.math.abs(pct).toInt(), prevMonth)
+        val diff = ui.totalSpent - prev
+        val pct = kotlin.math.abs((diff.toDouble() / prev.toDouble()) * 100.0).toInt()
+        when {
+            diff > 0 -> {
+                valueView.text = getString(R.string.insights_delta_pct, "▲", pct)
+                valueView.setTextColor(themeColor(com.google.android.material.R.attr.colorError))
+            }
+            diff < 0 -> {
+                valueView.text = getString(R.string.insights_delta_pct, "▼", pct)
+                valueView.setTextColor(ContextCompat.getColor(requireContext(), R.color.money_credit))
+            }
+            else -> {
+                valueView.text = getString(R.string.insights_delta_pct, "=", pct)
+                valueView.setTextColor(neutralColor())
+            }
+        }
     }
+
+    private fun neutralColor(): Int = themeColor(com.google.android.material.R.attr.colorOnSurface)
+
+    private fun themeColor(@androidx.annotation.AttrRes attr: Int): Int =
+        com.google.android.material.color.MaterialColors.getColor(requireView(), attr)
 
     private fun bindPie(
         pie: CategoryPieView,
@@ -115,11 +131,24 @@ class InsightsFragment : Fragment(R.layout.fragment_insights) {
 
         val total = bars.sumOf { it.totalPaise }.coerceAtLeast(1L)
         val inflater = LayoutInflater.from(legend.context)
-        for ((i, b) in bars.withIndex()) {
-            val row = inflater.inflate(R.layout.item_category_progress, legend, false)
-            CategoryProgressBinder.bind(row, b.name, b.colorHex, b.totalPaise, total, animate = true, index = i)
+        for (b in bars) {
+            val row = inflater.inflate(R.layout.item_category_legend, legend, false)
+            bindLegendRow(row, b, total)
             legend.addView(row)
         }
+    }
+
+    private fun bindLegendRow(row: View, bar: CategoryBar, total: Long) {
+        val color = parseColor(bar.colorHex)
+        val dot = row.findViewById<View>(R.id.color_dot)
+        (dot.background?.mutate() as? GradientDrawable)?.setColor(color) ?: dot.setBackgroundColor(color)
+
+        row.findViewById<TextView>(R.id.name).text = bar.name
+
+        val pct = ((bar.totalPaise.toDouble() / total.toDouble()) * 100.0).toInt()
+        val pctText = if (pct == 0 && bar.totalPaise > 0L) getString(R.string.pct_lt_one) else "$pct%"
+        row.findViewById<TextView>(R.id.value).text =
+            "${CurrencyFormat.paiseToInr(bar.totalPaise)} · $pctText"
     }
 
     private fun parseColor(hex: String): Int = runCatching { Color.parseColor(hex) }.getOrElse { Color.GRAY }

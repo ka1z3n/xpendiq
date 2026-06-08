@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navOptions
 import androidx.navigation.ui.setupWithNavController
 import com.kaizenll.xpendiq.ui.onboarding.OnboardingActivity
 import com.kaizenll.xpendiq.util.Preferences
@@ -42,6 +43,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         val navHost = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        bottomNav.setupWithNavController(navHost.navController)
+        val navController = navHost.navController
+
+        // setupWithNavController keeps the selected tab highlight in sync with the destination.
+        bottomNav.setupWithNavController(navController)
+
+        // …but override tab taps to always land on the tab's root. The default behaviour saves and
+        // restores each tab's back stack, which would re-open a half-finished "Add transaction"
+        // form when you leave and return to the Transactions tab. We don't want leaf screens like
+        // the editor preserved across tab switches.
+        bottomNav.setOnItemSelectedListener { item ->
+            val options = navOptions {
+                launchSingleTop = true
+                restoreState = false
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = false
+                    inclusive = false
+                }
+            }
+            try {
+                navController.navigate(item.itemId, null, options)
+                true
+            } catch (e: IllegalArgumentException) {
+                false
+            }
+        }
     }
 }

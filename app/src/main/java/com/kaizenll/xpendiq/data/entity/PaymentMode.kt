@@ -6,5 +6,6 @@ enum class PaymentMode {
     CARD_DEBIT,
     NETBANKING,
     AUTO_DEBIT,
+    CASH,
     UNKNOWN,
 }
