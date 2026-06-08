@@ -68,6 +68,14 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             NotificationAccess.openSettings(requireContext())
         }
 
+        view.findViewById<View>(R.id.notif_info_btn).setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.settings_section_notif)
+                .setMessage(R.string.settings_notif_desc)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+
         val versionName = runCatching {
             requireContext().packageManager
                 .getPackageInfo(requireContext().packageName, 0).versionName

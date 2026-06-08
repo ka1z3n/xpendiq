@@ -11,12 +11,15 @@ import androidx.viewpager2.widget.ViewPager2
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.kaizenll.xpendiq.MainActivity
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.util.Preferences
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.kaizenll.xpendiq.work.BackfillWorker
 import com.google.android.material.button.MaterialButton
+import java.time.LocalDate
+import java.time.ZoneId
 
 class OnboardingActivity : AppCompatActivity() {
 
@@ -83,11 +86,20 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun finishOnboarding(runBackfill: Boolean) {
         if (runBackfill && SmsPermissions.smsGranted(this)) {
+            // First run imports the current calendar month only (from the 1st). Older history is
+            // unverified and would inflate the uncategorized pile, so it stays an explicit opt-in
+            // via the 90-day Settings backfill.
+            val monthStart = LocalDate.now()
+                .withDayOfMonth(1)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
             WorkManager.getInstance(this).enqueueUniqueWork(
                 BackfillWorker.UNIQUE_WORK_NAME,
                 ExistingWorkPolicy.REPLACE,
                 OneTimeWorkRequestBuilder<BackfillWorker>()
                     .addTag(BackfillWorker.TAG)
+                    .setInputData(workDataOf(BackfillWorker.KEY_CUTOFF_MILLIS to monthStart))
                     .build(),
             )
         }

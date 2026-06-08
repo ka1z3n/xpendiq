@@ -54,8 +54,8 @@
     <string name="onb_perm_b2">🗑 Deleted transactions don\'t come back</string>
     <string name="onb_perm_b3">⚙️ You can revoke this from Settings any time</string>
 
-    <string name="onb_backfill_title">Run a 90-day backfill?</string>
-    <string name="onb_backfill_msg">Xpendiq can scan the last 90 days of your inbox now so you start with history. You can also run this later from Settings.</string>
+    <string name="onb_backfill_title">Import this month\'s transactions?</string>
+    <string name="onb_backfill_msg">Xpendiq can scan this month\'s inbox so you start with your current spending. You can pull older history later from Settings.</string>
     <string name="onb_backfill_run">Run now</string>
     <string name="onb_backfill_skip">Not now</string>
 
@@ -128,6 +128,7 @@
     <string name="settings_label_notif">Notification access</string>
     <string name="settings_section_notif">Notification access (for RCS)</string>
     <string name="settings_notif_desc">Some banks (e.g. SBI Card) deliver transaction alerts via RCS instead of SMS. To capture those, Xpendiq needs to read your messaging-app notifications. Only Google Messages and Samsung Messages are watched.</string>
+    <string name="settings_notif_info">Why notification access?</string>
     <string name="settings_notif_granted">Notification access: Granted</string>
     <string name="settings_notif_missing">Notification access: Not granted</string>
     <string name="settings_notif_grant">Grant notification access</string>
@@ -137,8 +138,8 @@
     <string name="settings_grant">Grant SMS permission</string>
     <string name="settings_backfill_desc">Scan the last 90 days of inbox SMS and import any transactions Xpendiq missed.</string>
     <string name="settings_run_backfill">Run backfill</string>
-    <string name="settings_backfill_confirm_title">Run backfill?</string>
-    <string name="settings_backfill_confirm_msg">Xpendiq will read your inbox once and import bank SMS from the last 90 days. Deleted transactions will not be re-imported.</string>
+    <string name="settings_backfill_confirm_title">Run 90-day backfill?</string>
+    <string name="settings_backfill_confirm_msg">This imports up to 90 days of older bank SMS. Because these transactions weren\'t reviewed as they happened, some may be mis-categorised (e.g. a credit-card bill paid via a wallet) and will add to your uncategorised list. Deleted transactions won\'t be re-imported.</string>
     <string name="settings_need_permission_first">Grant SMS permission first.</string>
     <string name="settings_backfill_enqueued">Backfill queued…</string>
     <string name="settings_backfill_running">Processed %1$d messages, saved %2$d…</string>

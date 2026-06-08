@@ -16,7 +16,11 @@ class BackfillWorker(
 
     override suspend fun doWork(): Result {
         val app = applicationContext as? XpendiqApplication ?: return Result.failure()
-        val cutoff = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(BACKFILL_DAYS)
+        // Caller may pin an explicit cutoff (onboarding imports the current calendar month only);
+        // otherwise fall back to the 90-day window used by the manual Settings backfill.
+        val cutoff = inputData.getLong(KEY_CUTOFF_MILLIS, -1L)
+            .takeIf { it >= 0 }
+            ?: (System.currentTimeMillis() - TimeUnit.DAYS.toMillis(BACKFILL_DAYS))
 
         val cursor = applicationContext.contentResolver.query(
             Uri.parse("content://sms/inbox"),
@@ -57,6 +61,8 @@ class BackfillWorker(
 
     companion object {
         const val BACKFILL_DAYS = 90L
+        /** Optional Long input: import SMS with DATE >= this epoch-millis instead of the 90-day window. */
+        const val KEY_CUTOFF_MILLIS = "cutoff_millis"
         const val TAG = "xpendiq_backfill"
         const val UNIQUE_WORK_NAME = "xpendiq_backfill_once"
         const val PROGRESS_PROCESSED = "processed"

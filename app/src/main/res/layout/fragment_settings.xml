@@ -100,6 +100,82 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Notification access (for RCS) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/settings_section_notif"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_label_notif"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <ImageView
+                        android:id="@+id/notif_info_btn"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="2dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="@string/settings_notif_info"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_info"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/notif_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_status_pill"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        tools:text="Not granted" />
+
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/notif_grant_btn"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/settings_notif_grant" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Backfill -->
         <TextView
             android:layout_width="match_parent"
@@ -141,77 +217,11 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/backfill_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/settings_run_backfill" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Notification access (for RCS) -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/settings_section_notif"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/settings_label_notif"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <TextView
-                        android:id="@+id/notif_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_pill"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="4dp"
-                        android:textAppearance="?attr/textAppearanceLabelMedium"
-                        tools:text="Not granted" />
-
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/settings_notif_desc"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/notif_grant_btn"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="@string/settings_notif_grant" />
+                    android:text="@string/settings_run_backfill" />
 
             </LinearLayout>
 
