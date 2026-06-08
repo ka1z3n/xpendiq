@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.TransactionType
-import com.kaizenll.xpendiq.data.repo.HiddenCategories
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -51,18 +50,12 @@ class InsightsViewModel(app: Application) : AndroidViewModel(app) {
         val (currStart, currEnd) = monthBounds(month)
         val (prevStart, prevEnd) = monthBounds(month.minusMonths(1))
 
-        // CC bill payments are excluded from "Received" — they're internal transfers, not income.
-        val excludeIdFlow = HiddenCategories.ccPaymentCategoryIdFlow(categoryDao)
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        val creditedFlow = excludeIdFlow.flatMapLatest { excludeId ->
-            txnDao.observeTotalExcludingCategory(TransactionType.CREDIT, currStart, currEnd, excludeId)
-        }
-
+        // Spend & received totals drop excluded-from-totals categories (self-transfers, CC-bill
+        // payments) — internal money movement, not real spending or income.
         return combine(
-            txnDao.observeTotal(TransactionType.DEBIT, currStart, currEnd),
-            txnDao.observeTotal(TransactionType.DEBIT, prevStart, prevEnd),
-            creditedFlow,
+            txnDao.observeTotalExcludingFlagged(TransactionType.DEBIT, currStart, currEnd),
+            txnDao.observeTotalExcludingFlagged(TransactionType.DEBIT, prevStart, prevEnd),
+            txnDao.observeTotalExcludingFlagged(TransactionType.CREDIT, currStart, currEnd),
             txnDao.observeTotal(TransactionType.INVESTMENT, currStart, currEnd),
             categoryBars(currStart, currEnd),
         ) { spent, prevSpent, credited, invested, bars ->
@@ -89,7 +82,7 @@ class InsightsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun categoryBars(start: Long, end: Long): kotlinx.coroutines.flow.Flow<List<CategoryBar>> =
-        txnDao.observeTotalsByCategory(TransactionType.DEBIT, start, end)
+        txnDao.observeTotalsByCategoryExcludingFlagged(TransactionType.DEBIT, start, end)
             .combine(categoryDao.observeAll()) { totals, cats ->
                 val byId = cats.associateBy { it.id }
                 totals.mapNotNull { t ->

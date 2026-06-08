@@ -27,8 +27,31 @@ object SeedMigration {
 
     suspend fun run(db: XpendiqDatabase) {
         ensureLaterCategories(db)
+        ensureSelfTransferCategory(db)
         topUpMerchantRules(db)
         applyRulesToExistingTransactions(db)
+    }
+
+    /**
+     * Adds the "Self-transfer" category (excluded from totals) to both DEBIT and CREDIT for installs
+     * that predate it. The MIGRATION_2_3 only back-fills the flag for the existing CC-payment bucket.
+     */
+    private suspend fun ensureSelfTransferCategory(db: XpendiqDatabase) {
+        val dao = db.categoryDao()
+        for (type in listOf(TransactionType.DEBIT, TransactionType.CREDIT)) {
+            if (dao.findByNameAndType(DatabaseSeeder.SELF_TRANSFER_NAME, type) != null) continue
+            dao.insert(
+                Category(
+                    name = DatabaseSeeder.SELF_TRANSFER_NAME,
+                    iconKey = "sync_alt",
+                    colorHex = CategoryPalette.colorFor(DatabaseSeeder.SELF_TRANSFER_NAME, type),
+                    isSystem = false,
+                    sortOrder = 100,
+                    appliesToType = type,
+                    excludedFromTotals = true,
+                )
+            )
+        }
     }
 
     private suspend fun ensureLaterCategories(db: XpendiqDatabase) {

@@ -14,6 +14,12 @@ data class SeedRule(
 
 object DatabaseSeeder {
 
+    /** The category name used (on both DEBIT and CREDIT) for money moved between your own accounts. */
+    const val SELF_TRANSFER_NAME = "Self-transfer"
+
+    /** Categories whose transactions never count toward spend/received totals or Insights. */
+    val EXCLUDED_FROM_TOTALS = setOf("Transfers (CC payment)", SELF_TRANSFER_NAME)
+
     suspend fun seed(db: XpendiqDatabase) {
         if (db.categoryDao().count() == 0) seedCategories(db)
         if (db.merchantRuleDao().count() == 0) seedMerchantRules(db)
@@ -34,6 +40,7 @@ object DatabaseSeeder {
             "Travel" to "flight",
             "Rent" to "home",
             "Transfers" to "swap_horiz",
+            "Self-transfer" to "sync_alt",
             "Other" to Category.ICON_OTHER,
         )
         spendCategories.forEachIndexed { i, (name, icon) ->
@@ -45,6 +52,7 @@ object DatabaseSeeder {
                     isSystem = false,
                     sortOrder = i,
                     appliesToType = TransactionType.DEBIT,
+                    excludedFromTotals = name in EXCLUDED_FROM_TOTALS,
                 )
             )
         }
@@ -54,6 +62,7 @@ object DatabaseSeeder {
             "Refund" to "undo",
             "Transfers (P2P UPI in)" to "call_received",
             "Transfers (CC payment)" to "credit_card",
+            "Self-transfer" to "sync_alt",
             "Income" to "payments",
             "Cashback / Rewards" to "redeem",
             "Interest" to "trending_up",
@@ -69,6 +78,7 @@ object DatabaseSeeder {
                     isSystem = false,
                     sortOrder = i,
                     appliesToType = TransactionType.CREDIT,
+                    excludedFromTotals = name in EXCLUDED_FROM_TOTALS,
                 )
             )
         }

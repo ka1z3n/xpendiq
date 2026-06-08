@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.TransactionType
-import com.kaizenll.xpendiq.data.repo.HiddenCategories
 import com.kaizenll.xpendiq.ui.insights.CategoryBar
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import java.time.ZoneId
@@ -40,15 +39,13 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         monthEnd = endOfMonth.toInstant().toEpochMilli()
     }
 
-    val monthSpend: Flow<Long> = dao.observeTotal(TransactionType.DEBIT, monthStart, monthEnd)
+    // Spend/received totals drop categories flagged excluded-from-totals (self-transfers and
+    // CC-bill payments) — internal money movement, not real spending or income.
+    val monthSpend: Flow<Long> = dao.observeTotalExcludingFlagged(TransactionType.DEBIT, monthStart, monthEnd)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val monthCredited: Flow<Long> =
-        HiddenCategories.ccPaymentCategoryIdFlow(categoryDao)
-            .flatMapLatest { excludeId ->
-                dao.observeTotalExcludingCategory(TransactionType.CREDIT, monthStart, monthEnd, excludeId)
-            }
+        dao.observeTotalExcludingFlagged(TransactionType.CREDIT, monthStart, monthEnd)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
 
     val monthInvested: Flow<Long> = dao.observeTotal(TransactionType.INVESTMENT, monthStart, monthEnd)
@@ -70,7 +67,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Top 3 spend categories this month, sized descending. */
     val topSpendCategories: Flow<List<CategoryBar>> =
-        dao.observeTotalsByCategory(TransactionType.DEBIT, monthStart, monthEnd)
+        dao.observeTotalsByCategoryExcludingFlagged(TransactionType.DEBIT, monthStart, monthEnd)
             .combine(categoryDao.observeAll()) { totals, cats ->
                 val byId = cats.associateBy { it.id }
                 totals.take(3).mapNotNull { t ->

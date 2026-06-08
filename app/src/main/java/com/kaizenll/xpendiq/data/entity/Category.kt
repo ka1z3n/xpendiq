@@ -16,6 +16,12 @@ data class Category(
     val isSystem: Boolean,
     val sortOrder: Int,
     val appliesToType: TransactionType,
+    /**
+     * When true, transactions in this category are left out of spend/received totals and the
+     * Insights breakdown — they're internal money movement, not real spending or income
+     * (e.g. a self-transfer between your own accounts, or a credit-card bill payment).
+     */
+    val excludedFromTotals: Boolean = false,
 ) {
     companion object {
         const val ICON_UNCATEGORIZED = "help_outline"

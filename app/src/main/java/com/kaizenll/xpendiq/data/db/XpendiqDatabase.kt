@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
         DeletedSmsHash::class,
         IgnoredSender::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -55,7 +55,7 @@ abstract class XpendiqDatabase : RoomDatabase() {
                 XpendiqDatabase::class.java,
                 "xpendiq.db",
             )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
@@ -69,6 +69,15 @@ abstract class XpendiqDatabase : RoomDatabase() {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN currency TEXT NOT NULL DEFAULT 'INR'")
+            }
+        }
+
+        // Adds the "excluded from totals" flag and back-fills it for the existing CC-bill-payment
+        // bucket (an internal transfer). New "Self-transfer" categories are added by SeedMigration.
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE categories ADD COLUMN excludedFromTotals INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE categories SET excludedFromTotals = 1 WHERE name = 'Transfers (CC payment)'")
             }
         }
     }

@@ -20,6 +20,7 @@ object CategoryPalette {
         "Travel" to "#00BCD4",          // cyan
         "Rent" to "#795548",            // brown
         "Transfers" to "#607D8B",       // blue grey
+        "Self-transfer" to "#78909C",   // blue grey (lighter) — excluded from totals
         "Other" to "#9E9E9E",           // grey
     )
 
@@ -27,6 +28,7 @@ object CategoryPalette {
         "Refund" to "#4CAF50",                 // green
         "Transfers (P2P UPI in)" to "#8BC34A", // light green
         "Transfers (CC payment)" to "#607D8B", // blue grey (hidden in lists)
+        "Self-transfer" to "#78909C",          // blue grey (lighter) — excluded from totals
         "Income" to "#FFC107",                 // amber
         "Cashback / Rewards" to "#FF9800",     // orange
         "Interest" to "#2196F3",               // blue

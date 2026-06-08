@@ -192,4 +192,43 @@ interface TransactionDao {
         startMillis: Long,
         endMillis: Long,
     ): Flow<List<CategoryTotal>>
+
+    /**
+     * INR-only sum that drops categories flagged [Category.excludedFromTotals] (self-transfers,
+     * CC-bill payments). Used for spend/received totals where internal money movement shouldn't count.
+     */
+    @Query(
+        """
+        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        WHERE type = :type
+          AND currency = 'INR'
+          AND occurredAt BETWEEN :startMillis AND :endMillis
+          AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
+        """
+    )
+    fun observeTotalExcludingFlagged(
+        type: TransactionType,
+        startMillis: Long,
+        endMillis: Long,
+    ): Flow<Long>
+
+    /** Per-category totals as [observeTotalsByCategory], minus the [Category.excludedFromTotals] ones. */
+    @Query(
+        """
+        SELECT categoryId AS categoryId, SUM(amountPaise) AS totalPaise
+        FROM transactions
+        WHERE type = :type
+          AND currency = 'INR'
+          AND occurredAt BETWEEN :startMillis AND :endMillis
+          AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
+        GROUP BY categoryId
+        HAVING SUM(amountPaise) > 0
+        ORDER BY SUM(amountPaise) DESC
+        """
+    )
+    fun observeTotalsByCategoryExcludingFlagged(
+        type: TransactionType,
+        startMillis: Long,
+        endMillis: Long,
+    ): Flow<List<CategoryTotal>>
 }
