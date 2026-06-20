@@ -99,6 +99,13 @@
     <string name="uncat_apply_all">Always categorize from %1$s this way</string>
     <string name="uncat_chip">Uncategorized</string>
     <string name="uncat_header_count">Uncategorized · %1$d to review</string>
+    <string name="uncat_suggested">Suggested for you</string>
+    <!-- Detail line under a suggested merchant, e.g. "3 transactions → Food &amp; Dining" -->
+    <plurals name="uncat_suggestion_detail">
+        <item quantity="one">%1$d transaction → %2$s</item>
+        <item quantity="other">%1$d transactions → %2$s</item>
+    </plurals>
+    <string name="uncat_apply">Apply</string>
     <string name="uncat_selected_count">%1$d selected</string>
     <string name="uncat_bulk_categorize">Categorize</string>
     <string name="uncat_bulk_delete">Delete</string>

@@ -19,6 +19,9 @@ object Motion {
     /** Ease-out cubic, for value count-ups. */
     val easeOutCubic = PathInterpolator(0.33f, 1f, 0.68f, 1f)
 
+    /** Accelerate easing — cubic-bezier(.4, 0, 1, 1). For elements exiting the screen. */
+    val accelerate = PathInterpolator(0.4f, 0f, 1f, 1f)
+
     const val EMPHASIZED_MS = 800L
 
     /** False when the OS animator scale is 0 (animations off / reduced motion). */

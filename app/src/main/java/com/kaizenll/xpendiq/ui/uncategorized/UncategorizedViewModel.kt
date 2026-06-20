@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,6 +37,59 @@ class UncategorizedViewModel(app: Application) : AndroidViewModel(app) {
     val items: StateFlow<List<TransactionEntity>> =
         _selectedType.flatMapLatest { type -> observeUncategorizedTxns(type) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Exact-match suggestions: for each merchant that has uncategorized rows AND a history of
+     * being categorized by the user, propose the category the user filed it under most often.
+     * No fuzzy matching — Indian P2P merchants (people, auto-rickshaws) are too ambiguous to
+     * guess; we only ever echo a decision the user already made for that exact merchant key.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val suggestions: StateFlow<List<Suggestion>> =
+        _selectedType.flatMapLatest { type ->
+            uncategorizedIdFlow(type).flatMapLatest { uncatId ->
+                if (uncatId == null) flowOf(emptyList())
+                else combine(
+                    txnDao.observeUncategorized(type, uncatId),
+                    txnDao.observeByTypeExcludingCategory(type, uncatId),
+                    categoryDao.observeAll(),
+                ) { uncats, history, cats -> buildSuggestions(uncats, history, cats) }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private fun buildSuggestions(
+        uncats: List<TransactionEntity>,
+        history: List<TransactionEntity>,
+        cats: List<Category>,
+    ): List<Suggestion> {
+        if (uncats.isEmpty() || history.isEmpty()) return emptyList()
+        val byId = cats.associateBy { it.id }
+        val historyByMerchant = history
+            .filter { !it.merchantNormalized.isNullOrBlank() }
+            .groupBy { it.merchantNormalized!! }
+        val uncatByMerchant = uncats
+            .filter { !it.merchantNormalized.isNullOrBlank() }
+            .groupBy { it.merchantNormalized!! }
+
+        val out = ArrayList<Suggestion>()
+        for ((merchant, rows) in uncatByMerchant) {
+            val hist = historyByMerchant[merchant] ?: continue
+            // Dominant = the category this merchant was filed under most often.
+            val dominantId = hist.groupingBy { it.categoryId }.eachCount()
+                .maxByOrNull { it.value }?.key ?: continue
+            val category = byId[dominantId] ?: continue
+            val display = rows.firstOrNull { !it.merchantRaw.isNullOrBlank() }?.merchantRaw ?: merchant
+            out += Suggestion(merchant, display, rows.size, category)
+        }
+        // Most-impactful first (clears the largest pile), capped so the block stays a glance.
+        return out.sortedByDescending { it.count }.take(3)
+    }
+
+    /** Resolves the Uncategorized category id for [type] as a flow (null until categories load). */
+    private fun uncategorizedIdFlow(type: TransactionType): Flow<Long?> =
+        categoryDao.observeByType(type).map { list ->
+            list.firstOrNull { it.isSystem && it.name == "Uncategorized" }?.id
+        }
 
     /**
      * Picker items: every category (across DEBIT / CREDIT / INVESTMENT) grouped by type, with
@@ -80,6 +135,16 @@ class UncategorizedViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Accept a suggestion: writes a permanent merchant rule (so future SMS auto-file) and
+     * recategorizes every matching uncategorized row in one shot.
+     */
+    fun applySuggestion(s: Suggestion) {
+        viewModelScope.launch {
+            repo.applyMerchantRuleAndRecategorize(s.merchantNormalized, _selectedType.value, s.category.id)
+        }
+    }
+
     fun delete(txn: TransactionEntity) {
         viewModelScope.launch { repo.delete(txn) }
     }
@@ -93,6 +158,17 @@ class UncategorizedViewModel(app: Application) : AndroidViewModel(app) {
     fun bulkDelete(ids: List<Long>) {
         viewModelScope.launch { repo.deleteAll(ids) }
     }
+
+    /**
+     * One exact-match suggestion: [count] uncategorized rows from [merchantNormalized] (shown as
+     * [display], the raw merchant name) that the user has historically filed under [category].
+     */
+    data class Suggestion(
+        val merchantNormalized: String,
+        val display: String,
+        val count: Int,
+        val category: Category,
+    )
 
     private fun observeUncategorizedTxns(type: TransactionType): Flow<List<TransactionEntity>> {
         val cachedId = uncategorizedIds[type]
