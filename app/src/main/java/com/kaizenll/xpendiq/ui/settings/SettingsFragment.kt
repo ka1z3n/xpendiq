@@ -25,11 +25,21 @@ import com.kaizenll.xpendiq.work.BackfillWorker
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
+import java.time.LocalDate
 import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private val viewModel: SettingsViewModel by viewModels()
+
+    // SAF: pick where to write the CSV / which CSV to read back.
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv"),
+    ) { uri -> if (uri != null) runExport(uri) }
+
+    private val importLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> if (uri != null) confirmImport(uri) }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -62,6 +72,15 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         view.findViewById<MaterialButton>(R.id.manage_categories_btn).setOnClickListener {
             findNavController().navigate(R.id.categoriesFragment)
+        }
+
+        view.findViewById<MaterialButton>(R.id.export_btn).setOnClickListener {
+            exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
+        }
+
+        view.findViewById<MaterialButton>(R.id.import_btn).setOnClickListener {
+            // "*/*" so a .csv is never greyed out by an odd MIME mapping on the device.
+            importLauncher.launch(arrayOf("*/*"))
         }
 
         view.findViewById<MaterialButton>(R.id.notif_grant_btn).setOnClickListener {
@@ -134,6 +153,57 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.settings_run_backfill) { _, _ -> viewModel.startBackfill() }
             .show()
+    }
+
+    private fun runExport(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val count = runCatching {
+                requireContext().contentResolver.openOutputStream(uri)?.let { viewModel.exportCsv(it) }
+            }.getOrNull()
+            val v = view ?: return@launch
+            if (count != null) {
+                val msg = getString(R.string.settings_export_done, count)
+                showBackupStatus(msg)
+                Snackbar.make(v, msg, Snackbar.LENGTH_LONG).show()
+            } else {
+                Snackbar.make(v, R.string.settings_export_failed, Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun confirmImport(uri: Uri) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.settings_import_confirm_title)
+            .setMessage(R.string.settings_import_confirm_msg)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.settings_import) { _, _ -> runImport(uri) }
+            .show()
+    }
+
+    private fun runImport(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = runCatching {
+                requireContext().contentResolver.openInputStream(uri)?.use { viewModel.importCsv(it) }
+            }.getOrNull()
+            val v = view ?: return@launch
+            if (result == null) {
+                Snackbar.make(v, R.string.settings_import_failed, Snackbar.LENGTH_LONG).show()
+                return@launch
+            }
+            val msg = if (result.failed > 0) {
+                getString(R.string.settings_import_done_errors, result.imported, result.skipped, result.failed)
+            } else {
+                getString(R.string.settings_import_done, result.imported, result.skipped)
+            }
+            showBackupStatus(msg)
+            Snackbar.make(v, msg, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showBackupStatus(text: String) {
+        val statusView = view?.findViewById<TextView>(R.id.backup_status) ?: return
+        statusView.text = text
+        statusView.visibility = View.VISIBLE
     }
 
     private fun renderBackfillStatus(view: View, infos: List<WorkInfo>) {

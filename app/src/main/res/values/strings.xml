@@ -129,6 +129,18 @@
     <string name="settings_manage_categories">Manage categories</string>
     <string name="settings_section_about">About</string>
     <string name="settings_version">Version %1$s</string>
+
+    <string name="settings_section_backup">Backup &amp; restore</string>
+    <string name="settings_backup_desc">Export your transactions to a CSV file, or import a backup after switching phones.</string>
+    <string name="settings_export">Export CSV</string>
+    <string name="settings_import">Import CSV</string>
+    <string name="settings_export_done">Exported %1$d transactions</string>
+    <string name="settings_export_failed">Export failed</string>
+    <string name="settings_import_confirm_title">Import transactions?</string>
+    <string name="settings_import_confirm_msg">New transactions from the file are added. Any already on this phone (matched by their original message) are skipped, so nothing is duplicated.</string>
+    <string name="settings_import_done">Imported %1$d · skipped %2$d</string>
+    <string name="settings_import_done_errors">Imported %1$d · skipped %2$d · %3$d couldn\'t be read</string>
+    <string name="settings_import_failed">Couldn\'t read that file</string>
     <string name="settings_status_granted">Granted</string>
     <string name="settings_status_missing">Not granted</string>
     <string name="settings_label_sms">SMS access</string>
