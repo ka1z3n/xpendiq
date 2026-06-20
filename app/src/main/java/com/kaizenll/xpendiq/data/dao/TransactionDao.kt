@@ -33,10 +33,13 @@ interface TransactionDao {
     @Query("UPDATE transactions SET smsBodyHash = :newHash WHERE id = :id")
     suspend fun updateHash(id: Long, newHash: String)
 
-    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC")
+    // Secondary `id DESC` breaks ties: SMS dates parse to midnight, so same-day rows share an
+    // occurredAt; falling back to insertion order (highest id = most recently added) keeps the
+    // newest transaction at the top of its day group instead of the bottom.
+    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC, id DESC")
     fun observeByType(type: TransactionType): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC LIMIT :limit")
+    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC, id DESC LIMIT :limit")
     fun observeRecent(type: TransactionType, limit: Int): Flow<List<TransactionEntity>>
 
     /** Pass -1L as the sentinel when nothing should be excluded. */
@@ -45,7 +48,7 @@ interface TransactionDao {
         SELECT * FROM transactions
         WHERE type = :type
           AND categoryId != :excludeCategoryId
-        ORDER BY occurredAt DESC
+        ORDER BY occurredAt DESC, id DESC
         """
     )
     fun observeByTypeExcludingCategory(
@@ -58,7 +61,7 @@ interface TransactionDao {
         SELECT * FROM transactions
         WHERE type = :type
           AND categoryId = :uncategorizedId
-        ORDER BY occurredAt DESC
+        ORDER BY occurredAt DESC, id DESC
         """
     )
     fun observeUncategorized(type: TransactionType, uncategorizedId: Long): Flow<List<TransactionEntity>>
