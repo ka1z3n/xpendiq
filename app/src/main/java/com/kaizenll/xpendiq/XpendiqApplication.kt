@@ -49,6 +49,7 @@ class XpendiqApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.kaizenll.xpendiq.util.AppLock.registerBackgroundReset(this)
         appScope.launch(Dispatchers.IO) {
             HashRehashMigration.run(database)
             SeedMigration.run(database)

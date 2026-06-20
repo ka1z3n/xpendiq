@@ -7,7 +7,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AlertDialog
@@ -24,7 +28,10 @@ import com.kaizenll.xpendiq.util.SmsPermissions
 import com.kaizenll.xpendiq.work.BackfillWorker
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.snackbar.Snackbar
+import com.kaizenll.xpendiq.util.AppLock
+import com.kaizenll.xpendiq.util.Preferences
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 
@@ -73,6 +80,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         view.findViewById<MaterialButton>(R.id.manage_categories_btn).setOnClickListener {
             findNavController().navigate(R.id.categoriesFragment)
         }
+
+        setupAppLockSwitch(view)
 
         view.findViewById<MaterialButton>(R.id.export_btn).setOnClickListener {
             exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
@@ -153,6 +162,36 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.settings_run_backfill) { _, _ -> viewModel.startBackfill() }
             .show()
+    }
+
+    private fun setupAppLockSwitch(view: View) {
+        val switch = view.findViewById<MaterialSwitch>(R.id.app_lock_switch)
+        switch.isChecked = Preferences.isAppLockEnabled(requireContext())
+        switch.setOnCheckedChangeListener { _, checked ->
+            if (checked && !canAuthenticate()) {
+                // No biometric/screen lock on the device — can't enable. Revert and explain.
+                switch.isChecked = false
+                Snackbar.make(view, R.string.settings_app_lock_no_credential, Snackbar.LENGTH_LONG).show()
+                return@setOnCheckedChangeListener
+            }
+            Preferences.setAppLockEnabled(requireContext(), checked)
+            // The current session is clearly the owner; don't prompt until the app is next reopened.
+            AppLock.isUnlocked = true
+            applySecureFlag(checked)
+        }
+    }
+
+    private fun canAuthenticate(): Boolean =
+        BiometricManager.from(requireContext())
+            .canAuthenticate(BIOMETRIC_WEAK or DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS
+
+    private fun applySecureFlag(secure: Boolean) {
+        val window = activity?.window ?: return
+        if (secure) {
+            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 
     private fun runExport(uri: Uri) {

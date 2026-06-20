@@ -135,6 +135,16 @@
     <string name="settings_section_about">About</string>
     <string name="settings_version">Version %1$s</string>
 
+    <string name="settings_section_security">Privacy</string>
+    <string name="settings_app_lock">App lock</string>
+    <string name="settings_app_lock_desc">Require fingerprint, face, or your phone\'s screen lock to open Xpendiq.</string>
+    <string name="settings_app_lock_no_credential">Set up a screen lock on your phone first.</string>
+
+    <string name="lock_title">Xpendiq is locked</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_prompt_title">Unlock Xpendiq</string>
+    <string name="lock_prompt_subtitle">Confirm it\'s you to continue</string>
+
     <string name="settings_section_backup">Backup &amp; restore</string>
     <string name="settings_backup_desc">Export your transactions to a CSV file, or import a backup after switching phones.</string>
     <string name="settings_export">Export CSV</string>
