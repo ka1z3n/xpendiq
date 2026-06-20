@@ -218,7 +218,7 @@
 
                     <ImageView
                         style="@style/SettingsRowIcon"
-                        android:src="@drawable/ic_download" />
+                        android:src="@drawable/ic_upload" />
 
                     <LinearLayout style="@style/SettingsRowText">
 
@@ -245,7 +245,7 @@
 
                     <ImageView
                         style="@style/SettingsRowIcon"
-                        android:src="@drawable/ic_upload" />
+                        android:src="@drawable/ic_download" />
 
                     <LinearLayout style="@style/SettingsRowText">
 
