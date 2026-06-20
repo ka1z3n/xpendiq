@@ -195,7 +195,12 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             } else {
                 getString(R.string.settings_import_done, result.imported, result.skipped)
             }
-            showBackupStatus(msg)
+            val statusMsg = if (result.categories > 0 || result.rules > 0) {
+                msg + "\n" + getString(R.string.settings_import_also, result.categories, result.rules)
+            } else {
+                msg
+            }
+            showBackupStatus(statusMsg)
             Snackbar.make(v, msg, Snackbar.LENGTH_LONG).show()
         }
     }

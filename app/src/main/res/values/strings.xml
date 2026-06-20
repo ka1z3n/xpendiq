@@ -140,6 +140,7 @@
     <string name="settings_import_confirm_msg">New transactions from the file are added. Any already on this phone (matched by their original message) are skipped, so nothing is duplicated.</string>
     <string name="settings_import_done">Imported %1$d · skipped %2$d</string>
     <string name="settings_import_done_errors">Imported %1$d · skipped %2$d · %3$d couldn\'t be read</string>
+    <string name="settings_import_also">Also restored %1$d categories and %2$d rules</string>
     <string name="settings_import_failed">Couldn\'t read that file</string>
     <string name="settings_status_granted">Granted</string>
     <string name="settings_status_missing">Not granted</string>
