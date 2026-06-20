@@ -54,6 +54,11 @@
     <string name="onb_perm_b2">🗑 Deleted transactions don\'t come back</string>
     <string name="onb_perm_b3">⚙️ You can revoke this from Settings any time</string>
 
+    <string name="onb_notif_title">Catch RCS bank alerts too?</string>
+    <string name="onb_notif_msg">Some banks (e.g. SBI Card) send alerts over RCS instead of SMS. Turn on notification access so Xpendiq can read those from Google Messages or Samsung Messages. You can change this any time in Settings.</string>
+    <string name="onb_notif_enable">Enable</string>
+    <string name="onb_notif_skip">Not now</string>
+
     <string name="onb_backfill_title">Import this month\'s transactions?</string>
     <string name="onb_backfill_msg">Xpendiq can scan this month\'s inbox so you start with your current spending. You can pull older history later from Settings.</string>
     <string name="onb_backfill_run">Run now</string>

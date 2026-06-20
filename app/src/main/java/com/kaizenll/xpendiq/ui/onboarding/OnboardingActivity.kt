@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.kaizenll.xpendiq.MainActivity
 import com.kaizenll.xpendiq.R
+import com.kaizenll.xpendiq.util.NotificationAccess
 import com.kaizenll.xpendiq.util.Preferences
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.kaizenll.xpendiq.work.BackfillWorker
@@ -23,11 +24,16 @@ import java.time.ZoneId
 
 class OnboardingActivity : AppCompatActivity() {
 
+    // Set when we send the user to the notification-access settings screen, so the next onResume
+    // knows to carry on with the backfill prompt rather than waiting for a result that never comes
+    // (notification access has no runtime-permission callback).
+    private var pendingNotifContinue = false
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { _ ->
         if (SmsPermissions.smsGranted(this)) {
-            promptBackfillThenFinish()
+            promptNotificationAccessThenBackfill()
         }
         // If denied, user can retry via the button, or use Skip.
     }
@@ -60,7 +66,7 @@ class OnboardingActivity : AppCompatActivity() {
                 pager.currentItem = 1
             } else {
                 if (SmsPermissions.smsGranted(this)) {
-                    promptBackfillThenFinish()
+                    promptNotificationAccessThenBackfill()
                 } else {
                     permissionLauncher.launch(SmsPermissions.required)
                 }
@@ -68,6 +74,36 @@ class OnboardingActivity : AppCompatActivity() {
         }
 
         skip.setOnClickListener { finishOnboarding(runBackfill = false) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (pendingNotifContinue) {
+            pendingNotifContinue = false
+            promptBackfillThenFinish()
+        }
+    }
+
+    /**
+     * Notification access powers RCS-only bank alerts. It has no runtime dialog, so we explain it
+     * and bounce the user to the system listener-settings screen; [onResume] resumes the flow when
+     * they come back. Already-granted or "Not now" goes straight to the backfill prompt.
+     */
+    private fun promptNotificationAccessThenBackfill() {
+        if (NotificationAccess.isGranted(this)) {
+            promptBackfillThenFinish()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.onb_notif_title)
+            .setMessage(R.string.onb_notif_msg)
+            .setNegativeButton(R.string.onb_notif_skip) { _, _ -> promptBackfillThenFinish() }
+            .setPositiveButton(R.string.onb_notif_enable) { _, _ ->
+                pendingNotifContinue = true
+                NotificationAccess.openSettings(this)
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun promptBackfillThenFinish() {
