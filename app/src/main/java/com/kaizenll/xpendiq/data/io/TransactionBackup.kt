@@ -129,7 +129,10 @@ object TransactionBackup {
                         smsBody = col("smsBody").ifBlank { null },
                         sender = col("sender").ifBlank { null },
                         notes = col("notes").ifBlank { null },
-                        isUserEdited = col("isUserEdited").trim().equals("true", ignoreCase = true),
+                        // Always user-edited on import: a restored row must survive the startup
+                        // StaleTransactionCleanup, which deletes non-edited rows the current parser
+                        // would now reject. (The CSV's isUserEdited column is kept for reference.)
+                        isUserEdited = true,
                         createdAt = now,
                         updatedAt = now,
                     )
