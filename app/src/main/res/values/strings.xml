@@ -147,6 +147,7 @@
     <string name="settings_backfill_failed">Backfill failed. Try again.</string>
 
     <string name="detail_sms_label">Original SMS</string>
+    <string name="detail_see_original">See original message</string>
     <string name="detail_delete">Delete</string>
     <string name="detail_edit">Edit</string>
     <string name="detail_delete_confirm_title">Delete this transaction?</string>

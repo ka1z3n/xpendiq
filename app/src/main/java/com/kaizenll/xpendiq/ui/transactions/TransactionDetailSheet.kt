@@ -70,7 +70,22 @@ class TransactionDetailSheet : BottomSheetDialogFragment() {
             accountView.visibility = View.GONE
         }
 
-        view.findViewById<TextView>(R.id.sms_body).text = txn.smsBody ?: "(no SMS body stored)"
+        // The original SMS is hidden behind a "See original message" link — most users just want
+        // the parsed summary, and the raw text is reassurance-on-demand. No stored body, no link.
+        val seeOriginal = view.findViewById<TextView>(R.id.see_original_link)
+        val smsSection = view.findViewById<View>(R.id.sms_section)
+        val smsBody = txn.smsBody
+        if (smsBody.isNullOrBlank()) {
+            seeOriginal.visibility = View.GONE
+            smsSection.visibility = View.GONE
+        } else {
+            view.findViewById<TextView>(R.id.sms_body).text = smsBody
+            seeOriginal.visibility = View.VISIBLE
+            seeOriginal.setOnClickListener {
+                seeOriginal.visibility = View.GONE
+                smsSection.visibility = View.VISIBLE
+            }
+        }
 
         view.findViewById<MaterialButton>(R.id.delete_btn).setOnClickListener {
             confirmDelete(txn)

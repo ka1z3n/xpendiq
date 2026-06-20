@@ -62,6 +62,8 @@ class CategoryPickerSheet : BottomSheetDialogFragment() {
         view.findViewById<TextView>(R.id.header_amount).setText(R.string.uncat_bulk_subtitle)
         view.findViewById<SwitchMaterial>(R.id.apply_all_switch).visibility = View.GONE
         view.findViewById<MaterialButton>(R.id.delete_btn).visibility = View.GONE
+        // No single original SMS in bulk mode.
+        view.findViewById<TextView>(R.id.sms_body).visibility = View.GONE
 
         val recycler = view.findViewById<RecyclerView>(R.id.categories)
         val adapter = CategoryPickerAdapter(onPick = { category ->
@@ -93,6 +95,15 @@ class CategoryPickerSheet : BottomSheetDialogFragment() {
             switch.visibility = View.GONE
         } else {
             switch.text = getString(R.string.uncat_apply_all, merchantText)
+        }
+
+        val smsBodyView = view.findViewById<TextView>(R.id.sms_body)
+        val smsBody = txn.smsBody
+        if (smsBody.isNullOrBlank()) {
+            smsBodyView.visibility = View.GONE
+        } else {
+            smsBodyView.text = smsBody
+            smsBodyView.visibility = View.VISIBLE
         }
 
         view.findViewById<MaterialButton>(R.id.delete_btn).setOnClickListener {
