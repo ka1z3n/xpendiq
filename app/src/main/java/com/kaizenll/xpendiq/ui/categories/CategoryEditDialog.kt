@@ -33,6 +33,9 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
     private var selectedColor: String = PALETTE.first()
     private var existing: Category? = null
 
+    /** Colours already in use, per type — filtered out of the picker so categories stay distinct. */
+    private var usedByType: Map<TransactionType, Set<String>> = emptyMap()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -61,25 +64,35 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
         var selectedType =
             if (initialTypeArg == TransactionType.INVESTMENT) TransactionType.DEBIT else initialTypeArg
         typeInput.setText(typeLabel(selectedType), false)
-        typeInput.setOnItemClickListener { _, _, pos, _ -> selectedType = types[pos] }
+        typeInput.setOnItemClickListener { _, _, pos, _ ->
+            selectedType = types[pos]
+            renderSwatches(swatchRow, selectedType)
+        }
 
-        renderSwatches(swatchRow)
+        title.setText(R.string.cats_add_title)
 
-        if (editId != null) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                val app = requireActivity().application as XpendiqApplication
-                val cat = withContext(Dispatchers.IO) { app.database.categoryDao().findById(editId) }
-                if (cat == null) { dismiss(); return@launch }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val app = requireActivity().application as XpendiqApplication
+            val all = withContext(Dispatchers.IO) { app.database.categoryDao().getAll() }
+            // Taken colours per type. The category being edited is excluded so its own colour
+            // stays selectable.
+            usedByType = all
+                .filterNot { it.id == editId }
+                .groupBy({ it.appliesToType }, { it.colorHex.uppercase() })
+                .mapValues { entry -> entry.value.toSet() }
+
+            val cat = editId?.let { id -> all.firstOrNull { it.id == id } }
+            if (editId != null && cat == null) { dismiss(); return@launch }
+            if (cat != null) {
                 existing = cat
                 title.setText(R.string.cats_edit_title)
                 nameInput.setText(cat.name)
                 typeInput.setText(typeLabel(cat.appliesToType), false)
                 typeLayout.isEnabled = false  // type is immutable once created
                 selectedType = cat.appliesToType
-                setSelectedSwatch(swatchRow, cat.colorHex)
+                selectedColor = cat.colorHex
             }
-        } else {
-            title.setText(R.string.cats_add_title)
+            renderSwatches(swatchRow, selectedType)
         }
 
         cancelBtn.setOnClickListener { dismiss() }
@@ -101,15 +114,25 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
         TransactionType.INVESTMENT -> "Investments"
     }
 
-    private fun renderSwatches(row: LinearLayout) {
+    /** Palette minus colours already used by other categories of [type]; never empty. */
+    private fun availableColors(type: TransactionType): List<String> {
+        val used = usedByType[type].orEmpty()
+        return PALETTE.filter { it.uppercase() !in used }.ifEmpty { PALETTE }
+    }
+
+    private fun renderSwatches(row: LinearLayout, type: TransactionType) {
+        val colors = availableColors(type)
+        if (colors.none { it.equals(selectedColor, ignoreCase = true) }) {
+            selectedColor = colors.first()
+        }
         row.removeAllViews()
         val px = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 36f, resources.displayMetrics,
         ).toInt()
-        PALETTE.forEach { hex ->
+        colors.forEach { hex ->
             val swatch = FrameLayout(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(px, px).apply { setMargins(8, 8, 8, 8) }
-                background = makeSwatch(hex, selected = hex == selectedColor)
+                background = makeSwatch(hex, selected = hex.equals(selectedColor, ignoreCase = true))
                 tag = hex
                 setOnClickListener {
                     selectedColor = hex
@@ -124,13 +147,8 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
         for (i in 0 until row.childCount) {
             val child = row.getChildAt(i) as FrameLayout
             val hex = child.tag as String
-            child.background = makeSwatch(hex, selected = hex == selectedColor)
+            child.background = makeSwatch(hex, selected = hex.equals(selectedColor, ignoreCase = true))
         }
-    }
-
-    private fun setSelectedSwatch(row: LinearLayout, hex: String) {
-        selectedColor = if (PALETTE.contains(hex)) hex else PALETTE.first()
-        refreshSwatches(row)
     }
 
     private fun makeSwatch(hex: String, selected: Boolean): GradientDrawable {
@@ -147,6 +165,7 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
         private const val ARG_INITIAL_TYPE = "initial_type"
 
         val PALETTE = listOf(
+            // Material 500s
             "#F44336",  // red
             "#E91E63",  // pink
             "#9C27B0",  // purple
@@ -157,12 +176,38 @@ class CategoryEditDialog : BottomSheetDialogFragment() {
             "#009688",  // teal
             "#4CAF50",  // green
             "#8BC34A",  // light green
+            "#CDDC39",  // lime
+            "#FFEB3B",  // yellow
             "#FFC107",  // amber
             "#FF9800",  // orange
             "#FF5722",  // deep orange
             "#795548",  // brown
             "#607D8B",  // blue grey
             "#9E9E9E",  // grey
+            // Darker 700s
+            "#D32F2F",  // red 700
+            "#C2185B",  // pink 700
+            "#7B1FA2",  // purple 700
+            "#303F9F",  // indigo 700
+            "#1976D2",  // blue 700
+            "#00796B",  // teal 700
+            "#388E3C",  // green 700
+            "#F57C00",  // orange 700
+            "#E64A19",  // deep orange 700
+            "#5D4037",  // brown 700
+            "#455A64",  // blue grey 700
+            // Lighter 300s + accents
+            "#EF9A9A",  // red 300
+            "#F48FB1",  // pink 300
+            "#CE93D8",  // purple 300
+            "#9FA8DA",  // indigo 300
+            "#90CAF9",  // blue 300
+            "#80CBC4",  // teal 300
+            "#A5D6A7",  // green 300
+            "#FFE082",  // amber 300
+            "#FFCC80",  // orange 300
+            "#7C4DFF",  // deep purple accent
+            "#FF4081",  // pink accent
         )
 
         fun forAdd(initialType: TransactionType = TransactionType.DEBIT): CategoryEditDialog =
