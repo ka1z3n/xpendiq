@@ -133,7 +133,20 @@
     <string name="settings_section_categories">Categories</string>
     <string name="settings_manage_categories">Manage categories</string>
     <string name="settings_section_about">About</string>
+    <string name="settings_section_data">Data</string>
     <string name="settings_version">Version %1$s</string>
+    <string name="settings_label_sms_desc">Reads bank &amp; payment texts</string>
+    <string name="settings_label_notif_desc">For RCS receipts</string>
+    <string name="settings_backfill_label">Backfill from SMS</string>
+    <string name="settings_backfill_subtitle">Last 90 days · %1$d imported</string>
+    <string name="settings_run">Run</string>
+    <string name="settings_export_desc">Save all transactions to a file</string>
+    <string name="settings_import_desc">Restore after switching phones</string>
+    <string name="settings_app_lock_short">Unlock with fingerprint or face</string>
+    <plurals name="settings_categories_count">
+        <item quantity="one">%1$d category</item>
+        <item quantity="other">%1$d categories</item>
+    </plurals>
 
     <string name="settings_section_security">Privacy</string>
     <string name="settings_app_lock">App lock</string>

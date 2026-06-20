@@ -2,19 +2,18 @@ package com.kaizenll.xpendiq.ui.settings
 
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -23,15 +22,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
 import com.kaizenll.xpendiq.R
+import com.kaizenll.xpendiq.util.AppLock
 import com.kaizenll.xpendiq.util.NotificationAccess
+import com.kaizenll.xpendiq.util.Preferences
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.kaizenll.xpendiq.work.BackfillWorker
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.snackbar.Snackbar
-import com.kaizenll.xpendiq.util.AppLock
-import com.kaizenll.xpendiq.util.Preferences
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 
@@ -64,45 +62,40 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<MaterialButton>(R.id.grant_btn).setOnClickListener {
-            permissionLauncher.launch(SmsPermissions.required)
+        view.findViewById<View>(R.id.sms_row).setOnClickListener {
+            if (SmsPermissions.smsGranted(requireContext())) openAppSettings()
+            else permissionLauncher.launch(SmsPermissions.required)
         }
 
-        view.findViewById<MaterialButton>(R.id.backfill_btn).setOnClickListener {
+        view.findViewById<View>(R.id.notif_row).setOnClickListener {
+            NotificationAccess.openSettings(requireContext())
+        }
+
+        val runBackfill = View.OnClickListener {
             if (!SmsPermissions.smsGranted(requireContext())) {
                 Snackbar.make(view, R.string.settings_need_permission_first, Snackbar.LENGTH_SHORT).show()
                 permissionLauncher.launch(SmsPermissions.required)
-                return@setOnClickListener
+                return@OnClickListener
             }
             confirmAndStart()
         }
+        view.findViewById<View>(R.id.backfill_btn).setOnClickListener(runBackfill)
+        view.findViewById<View>(R.id.backfill_row).setOnClickListener(runBackfill)
 
-        view.findViewById<MaterialButton>(R.id.manage_categories_btn).setOnClickListener {
+        view.findViewById<View>(R.id.manage_categories_row).setOnClickListener {
             findNavController().navigate(R.id.categoriesFragment)
         }
 
-        setupAppLockSwitch(view)
-
-        view.findViewById<MaterialButton>(R.id.export_btn).setOnClickListener {
+        view.findViewById<View>(R.id.export_row).setOnClickListener {
             exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
         }
 
-        view.findViewById<MaterialButton>(R.id.import_btn).setOnClickListener {
+        view.findViewById<View>(R.id.import_row).setOnClickListener {
             // "*/*" so a .csv is never greyed out by an odd MIME mapping on the device.
             importLauncher.launch(arrayOf("*/*"))
         }
 
-        view.findViewById<MaterialButton>(R.id.notif_grant_btn).setOnClickListener {
-            NotificationAccess.openSettings(requireContext())
-        }
-
-        view.findViewById<View>(R.id.notif_info_btn).setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle(R.string.settings_section_notif)
-                .setMessage(R.string.settings_notif_desc)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
-        }
+        setupAppLock(view)
 
         val versionName = runCatching {
             requireContext().packageManager
@@ -124,35 +117,44 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         super.onResume()
         refreshPermissionStatus()
         refreshNotificationAccessStatus()
+        refreshCategoryCount()
     }
 
     private fun refreshPermissionStatus() {
         val view = view ?: return
         val granted = SmsPermissions.smsGranted(requireContext())
-        bindStatusPill(view.findViewById(R.id.permission_status), granted)
-        view.findViewById<MaterialButton>(R.id.grant_btn).visibility =
-            if (granted) View.GONE else View.VISIBLE
-        view.findViewById<MaterialButton>(R.id.backfill_btn).isEnabled = granted
+        bindStatus(view.findViewById(R.id.permission_status), granted)
+        setRunEnabled(view.findViewById(R.id.backfill_btn), granted)
     }
 
     private fun refreshNotificationAccessStatus() {
         val view = view ?: return
-        val granted = NotificationAccess.isGranted(requireContext())
-        bindStatusPill(view.findViewById(R.id.notif_status), granted)
-        view.findViewById<MaterialButton>(R.id.notif_grant_btn).visibility =
-            if (granted) View.GONE else View.VISIBLE
+        bindStatus(view.findViewById(R.id.notif_status), NotificationAccess.isGranted(requireContext()))
     }
 
-    /** Green "Granted" pill, or an error-red "Not granted" pill. */
-    private fun bindStatusPill(pill: TextView, granted: Boolean) {
-        val bg = if (granted) {
-            ContextCompat.getColor(pill.context, R.color.money_credit)
-        } else {
-            MaterialColors.getColor(pill, com.google.android.material.R.attr.colorError)
+    private fun refreshCategoryCount() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val count = viewModel.categoryCount()
+            val subtitle = view?.findViewById<TextView>(R.id.categories_subtitle) ?: return@launch
+            subtitle.text = resources.getQuantityString(R.plurals.settings_categories_count, count, count)
         }
-        pill.setText(if (granted) R.string.settings_status_granted else R.string.settings_status_missing)
-        pill.backgroundTintList = ColorStateList.valueOf(bg)
-        pill.setTextColor(Color.WHITE)
+    }
+
+    /** Inline status: a coloured dot + "Granted" (green) / "Not granted" (error). */
+    private fun bindStatus(status: TextView, granted: Boolean) {
+        val color = if (granted) {
+            ContextCompat.getColor(status.context, R.color.money_credit)
+        } else {
+            MaterialColors.getColor(status, com.google.android.material.R.attr.colorError)
+        }
+        status.setText(if (granted) R.string.settings_status_granted else R.string.settings_status_missing)
+        status.setTextColor(color)
+        status.compoundDrawableTintList = ColorStateList.valueOf(color)
+    }
+
+    private fun setRunEnabled(runBtn: TextView, enabled: Boolean) {
+        runBtn.isEnabled = enabled
+        runBtn.alpha = if (enabled) 1f else 0.4f
     }
 
     private fun confirmAndStart() {
@@ -164,7 +166,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             .show()
     }
 
-    private fun setupAppLockSwitch(view: View) {
+    private fun setupAppLock(view: View) {
         val switch = view.findViewById<MaterialSwitch>(R.id.app_lock_switch)
         switch.isChecked = Preferences.isAppLockEnabled(requireContext())
         switch.setOnCheckedChangeListener { _, checked ->
@@ -179,6 +181,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             AppLock.isUnlocked = true
             applySecureFlag(checked)
         }
+        // The whole row toggles the switch.
+        view.findViewById<View>(R.id.app_lock_row).setOnClickListener { switch.toggle() }
     }
 
     private fun canAuthenticate(): Boolean =
@@ -240,6 +244,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 msg
             }
             showBackupStatus(statusMsg)
+            refreshCategoryCount()
             Snackbar.make(v, msg, Snackbar.LENGTH_LONG).show()
         }
     }
@@ -251,12 +256,14 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     }
 
     private fun renderBackfillStatus(view: View, infos: List<WorkInfo>) {
-        val statusView = view.findViewById<TextView>(R.id.backfill_status)
-        val btn = view.findViewById<MaterialButton>(R.id.backfill_btn)
+        val subtitle = view.findViewById<TextView>(R.id.backfill_subtitle)
+        val runBtn = view.findViewById<TextView>(R.id.backfill_btn)
+        val granted = SmsPermissions.smsGranted(requireContext())
         val info = infos.lastOrNull()
+
         if (info == null) {
-            statusView.visibility = View.GONE
-            btn.isEnabled = SmsPermissions.smsGranted(requireContext())
+            subtitle.text = getString(R.string.settings_backfill_subtitle, 0)
+            setRunEnabled(runBtn, granted)
             return
         }
 
@@ -267,27 +274,22 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             .takeIf { it > 0 }
             ?: info.outputData.getInt(BackfillWorker.RESULT_SAVED, 0)
 
-        statusView.visibility = View.VISIBLE
         when (info.state) {
-            WorkInfo.State.ENQUEUED -> {
-                statusView.setText(R.string.settings_backfill_enqueued)
-                btn.isEnabled = false
+            WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> {
+                subtitle.setText(R.string.settings_backfill_enqueued)
+                setRunEnabled(runBtn, false)
             }
             WorkInfo.State.RUNNING -> {
-                statusView.text = getString(R.string.settings_backfill_running, processed, saved)
-                btn.isEnabled = false
+                subtitle.text = getString(R.string.settings_backfill_running, processed, saved)
+                setRunEnabled(runBtn, false)
             }
             WorkInfo.State.SUCCEEDED -> {
-                statusView.text = getString(R.string.settings_backfill_done, processed, saved)
-                btn.isEnabled = SmsPermissions.smsGranted(requireContext())
+                subtitle.text = getString(R.string.settings_backfill_subtitle, saved)
+                setRunEnabled(runBtn, granted)
             }
             WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
-                statusView.setText(R.string.settings_backfill_failed)
-                btn.isEnabled = SmsPermissions.smsGranted(requireContext())
-            }
-            WorkInfo.State.BLOCKED -> {
-                statusView.setText(R.string.settings_backfill_enqueued)
-                btn.isEnabled = false
+                subtitle.setText(R.string.settings_backfill_failed)
+                setRunEnabled(runBtn, granted)
             }
         }
     }

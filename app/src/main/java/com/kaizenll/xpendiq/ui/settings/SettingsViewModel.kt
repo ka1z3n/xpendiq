@@ -18,6 +18,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private val workManager: WorkManager = WorkManager.getInstance(app)
     private val database = (app as XpendiqApplication).database
 
+    /** Total category count, for the Manage categories row subtitle. */
+    suspend fun categoryCount(): Int = database.categoryDao().count()
+
     /** Write the full transaction history to [out] as CSV; returns the row count. */
     suspend fun exportCsv(out: OutputStream): Int = TransactionBackup.export(database, out)
 
