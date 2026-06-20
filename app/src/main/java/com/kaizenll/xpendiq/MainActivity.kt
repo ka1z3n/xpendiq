@@ -98,6 +98,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Relock only if we were backgrounded past the grace window; brief switches stay unlocked.
+        AppLock.onForeground()
         if (shouldLock()) {
             findViewById<View>(R.id.lock_overlay).visibility = View.VISIBLE
             if (!AppLock.authInProgress && !autoPrompted) {
