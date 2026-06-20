@@ -86,6 +86,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             findNavController().navigate(R.id.categoriesFragment)
         }
 
+        view.findViewById<View>(R.id.report_row).setOnClickListener {
+            findNavController().navigate(R.id.reportIssueFragment)
+        }
+
         view.findViewById<View>(R.id.export_row).setOnClickListener {
             exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
         }

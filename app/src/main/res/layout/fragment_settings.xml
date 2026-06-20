@@ -318,6 +318,40 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- HELP -->
+        <TextView
+            style="@style/SettingsSectionHeader"
+            android:text="@string/settings_section_help" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/SettingsGroupCard">
+
+            <LinearLayout
+                android:id="@+id/report_row"
+                style="@style/SettingsRow">
+
+                <ImageView
+                    style="@style/SettingsRowIcon"
+                    android:src="@drawable/ic_bug_report" />
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_report" />
+
+                    <TextView
+                        style="@style/SettingsRowSubtitle"
+                        android:text="@string/settings_report_desc" />
+
+                </LinearLayout>
+
+                <ImageView style="@style/SettingsRowChevron" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ABOUT -->
         <TextView
             style="@style/SettingsSectionHeader"

@@ -44,4 +44,9 @@
         android:id="@+id/categoriesFragment"
         android:name="com.kaizenll.xpendiq.ui.categories.CategoriesFragment"
         android:label="@string/cats_title" />
+
+    <fragment
+        android:id="@+id/reportIssueFragment"
+        android:name="com.kaizenll.xpendiq.ui.report.ReportIssueFragment"
+        android:label="@string/report_title" />
 </navigation>
