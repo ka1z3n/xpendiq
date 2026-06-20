@@ -13,28 +13,14 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- Page dots are added at runtime to match the page count. -->
     <LinearLayout
+        android:id="@+id/dots"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingTop="8dp">
-
-        <View
-            android:id="@+id/dot1"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/dot_indicator" />
-
-        <View
-            android:id="@+id/dot2"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/dot_indicator" />
-
-    </LinearLayout>
+        android:paddingTop="8dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_primary"

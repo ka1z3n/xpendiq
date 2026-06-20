@@ -2,7 +2,9 @@ package com.kaizenll.xpendiq.ui.onboarding
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -44,26 +46,25 @@ class OnboardingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_onboarding)
 
         val pager = findViewById<ViewPager2>(R.id.pager)
-        val dot1 = findViewById<View>(R.id.dot1)
-        val dot2 = findViewById<View>(R.id.dot2)
+        val dots = findViewById<LinearLayout>(R.id.dots)
         val primary = findViewById<MaterialButton>(R.id.btn_primary)
         val skip = findViewById<MaterialButton>(R.id.btn_skip)
 
         pager.adapter = OnboardingPagerAdapter(this)
-        dot1.isSelected = true
+        val pageCount = pager.adapter!!.itemCount
+        buildDots(dots, pageCount)
+        updateChrome(0, pageCount, dots, primary, skip)
 
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                dot1.isSelected = position == 0
-                dot2.isSelected = position == 1
-                primary.setText(if (position == 0) R.string.onb_continue else R.string.onb_allow)
-                skip.visibility = if (position == 1) View.VISIBLE else View.INVISIBLE
+                updateChrome(position, pageCount, dots, primary, skip)
             }
         })
 
         primary.setOnClickListener {
-            if (pager.currentItem == 0) {
-                pager.currentItem = 1
+            val lastPage = pageCount - 1
+            if (pager.currentItem < lastPage) {
+                pager.currentItem += 1
             } else {
                 if (SmsPermissions.smsGranted(this)) {
                     promptNotificationAccessThenBackfill()
@@ -75,6 +76,40 @@ class OnboardingActivity : AppCompatActivity() {
 
         skip.setOnClickListener { finishOnboarding(runBackfill = false) }
     }
+
+    /** One tappable dot per page; selection highlights the current one. */
+    private fun buildDots(container: LinearLayout, count: Int) {
+        val size = dp(10)
+        val margin = dp(4)
+        repeat(count) {
+            val dot = View(this).apply {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    setMargins(margin, margin, margin, margin)
+                }
+                setBackgroundResource(R.drawable.dot_indicator)
+            }
+            container.addView(dot)
+        }
+    }
+
+    /** The Skip link and Allow button only appear on the final (permission) page. */
+    private fun updateChrome(
+        position: Int,
+        count: Int,
+        dots: LinearLayout,
+        primary: MaterialButton,
+        skip: MaterialButton,
+    ) {
+        for (i in 0 until dots.childCount) dots.getChildAt(i).isSelected = (i == position)
+        val onLastPage = position == count - 1
+        primary.setText(if (onLastPage) R.string.onb_allow else R.string.onb_continue)
+        skip.visibility = if (onLastPage) View.VISIBLE else View.INVISIBLE
+    }
+
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics,
+        ).toInt()
 
     override fun onResume() {
         super.onResume()
