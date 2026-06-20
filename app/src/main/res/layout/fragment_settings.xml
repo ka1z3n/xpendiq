@@ -82,7 +82,9 @@
 
                 </LinearLayout>
 
-                <View style="@style/SettingsDivider" />
+                <View
+                    android:id="@+id/permissions_divider"
+                    style="@style/SettingsDivider" />
 
                 <!-- Notification access -->
                 <LinearLayout
@@ -166,7 +168,9 @@
 
                 </LinearLayout>
 
-                <View style="@style/SettingsDivider" />
+                <View
+                    android:id="@+id/data_divider"
+                    style="@style/SettingsDivider" />
 
                 <!-- Manage categories -->
                 <LinearLayout

@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
+import com.kaizenll.xpendiq.BuildConfig
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.util.AppLock
 import com.kaizenll.xpendiq.util.NotificationAccess
@@ -61,6 +62,15 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (!BuildConfig.SMS_ENABLED) {
+            // Notification-only flavor: no SMS access row, no SMS backfill. Notification access
+            // (the capture path here) and Manage categories remain in their cards.
+            view.findViewById<View>(R.id.sms_row).visibility = View.GONE
+            view.findViewById<View>(R.id.permissions_divider).visibility = View.GONE
+            view.findViewById<View>(R.id.backfill_row).visibility = View.GONE
+            view.findViewById<View>(R.id.data_divider).visibility = View.GONE
+        }
 
         view.findViewById<View>(R.id.sms_row).setOnClickListener {
             if (SmsPermissions.smsGranted(requireContext())) openAppSettings()

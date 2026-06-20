@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- SMS permissions (RECEIVE_SMS / READ_SMS) live in src/full/AndroidManifest.xml so the
+         Play flavor ships without them. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- So the "Report an issue" mail intent can resolve an email app under package visibility. -->
@@ -38,14 +38,7 @@
             android:name=".ui.onboarding.OnboardingActivity"
             android:exported="false" />
 
-        <receiver
-            android:name=".sms.SmsBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="100">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-            </intent-filter>
-        </receiver>
+        <!-- SmsBroadcastReceiver is declared in src/full/AndroidManifest.xml (full flavor only). -->
 
         <service
             android:name=".sms.MessageNotificationListener"

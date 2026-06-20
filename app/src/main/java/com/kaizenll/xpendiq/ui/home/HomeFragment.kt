@@ -18,8 +18,10 @@ import com.kaizenll.xpendiq.ui.insights.CategoryBar
 import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import com.kaizenll.xpendiq.ui.transactions.TransactionRowBinder
+import com.kaizenll.xpendiq.BuildConfig
 import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.Motion
+import com.kaizenll.xpendiq.util.NotificationAccess
 import com.kaizenll.xpendiq.util.SmsPermissions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -42,7 +44,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<MaterialButton>(R.id.banner_grant).setOnClickListener {
-            permissionLauncher.launch(SmsPermissions.required)
+            // Full flavor grants SMS at runtime; the notification-only flavor opens the system
+            // notification-access screen (its capture path).
+            if (BuildConfig.SMS_ENABLED) {
+                permissionLauncher.launch(SmsPermissions.required)
+            } else {
+                NotificationAccess.openSettings(requireContext())
+            }
         }
 
         view.findViewById<TextView>(R.id.month_pill).text = LocalDate.now().format(monthFmt)
@@ -172,7 +180,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun refreshBanner() {
         val view = view ?: return
-        val granted = SmsPermissions.smsGranted(requireContext())
+        // The capture permission differs per flavor: SMS for full, notification access for play.
+        val granted = if (BuildConfig.SMS_ENABLED) {
+            SmsPermissions.smsGranted(requireContext())
+        } else {
+            NotificationAccess.isGranted(requireContext())
+        }
         view.findViewById<MaterialCardView>(R.id.permission_banner).visibility =
             if (granted) View.GONE else View.VISIBLE
     }

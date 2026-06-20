@@ -30,12 +30,31 @@ android {
             )
         }
     }
+
+    // Two distribution variants:
+    //  - full: reads bank SMS (RECEIVE_SMS/READ_SMS + receiver). For off-Play distribution.
+    //  - play: notification-listener only, no SMS permissions. Safe for the Play SMS policy.
+    // SMS permissions and the SMS receiver live in src/full/AndroidManifest.xml; shared code
+    // branches on BuildConfig.SMS_ENABLED.
+    flavorDimensions += "dist"
+    productFlavors {
+        create("full") {
+            dimension = "dist"
+            buildConfigField("boolean", "SMS_ENABLED", "true")
+        }
+        create("play") {
+            dimension = "dist"
+            buildConfigField("boolean", "SMS_ENABLED", "false")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     testOptions {
         unitTests {

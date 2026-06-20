@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Play (notification-only) flavor overrides: the capture path is notification access, not SMS. -->
+<resources>
+    <string name="permission_denied_banner">Notification access is off. Tap to enable capture.</string>
+    <string name="grant_sms_permission">Enable notification access</string>
+
+    <string name="onb_allow">Enable notification access</string>
+
+    <string name="onb_intro_title">Track every spend, automatically</string>
+    <string name="onb_intro_body">Xpendiq reads your bank\'s transaction notifications, classifies them, and shows where your money goes.</string>
+    <string name="onb_intro_b1">🏦 Works with HDFC, SBI, ICICI, Axis &amp; more</string>
+    <string name="onb_intro_b2">💸 UPI, credit cards, debit cards, NEFT</string>
+    <string name="onb_intro_b3">📂 Auto-categorized — you correct anything wrong</string>
+    <string name="onb_intro_b4">🔒 Nothing leaves your phone</string>
+
+    <string name="onb_perm_emoji">🔔</string>
+    <string name="onb_perm_title">Enable notification access</string>
+    <string name="onb_perm_body">Xpendiq reads your bank\'s transaction alerts from your notifications, on your device.</string>
+    <string name="onb_perm_b1">📲 Only Google Messages &amp; Samsung Messages are watched</string>
+    <string name="onb_perm_b2">🔕 OTPs and promo alerts are filtered out</string>
+    <string name="onb_perm_b3">⚙️ You can revoke this from Settings any time</string>
+</resources>

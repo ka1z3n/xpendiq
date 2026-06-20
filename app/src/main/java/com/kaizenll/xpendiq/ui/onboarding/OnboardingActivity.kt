@@ -14,6 +14,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.kaizenll.xpendiq.BuildConfig
 import com.kaizenll.xpendiq.MainActivity
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.util.NotificationAccess
@@ -35,7 +36,7 @@ class OnboardingActivity : AppCompatActivity() {
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { _ ->
         if (SmsPermissions.smsGranted(this)) {
-            promptNotificationAccessThenBackfill()
+            promptNotificationAccessThenContinue()
         }
         // If denied, user can retry via the button, or use Skip.
     }
@@ -65,12 +66,14 @@ class OnboardingActivity : AppCompatActivity() {
             val lastPage = pageCount - 1
             if (pager.currentItem < lastPage) {
                 pager.currentItem += 1
+            } else if (!BuildConfig.SMS_ENABLED) {
+                // Notification-only flavor: there's no SMS to request — go straight to the
+                // notification-access ask, which is how this build captures transactions.
+                promptNotificationAccessThenContinue()
+            } else if (SmsPermissions.smsGranted(this)) {
+                promptNotificationAccessThenContinue()
             } else {
-                if (SmsPermissions.smsGranted(this)) {
-                    promptNotificationAccessThenBackfill()
-                } else {
-                    permissionLauncher.launch(SmsPermissions.required)
-                }
+                permissionLauncher.launch(SmsPermissions.required)
             }
         }
 
@@ -115,30 +118,36 @@ class OnboardingActivity : AppCompatActivity() {
         super.onResume()
         if (pendingNotifContinue) {
             pendingNotifContinue = false
-            promptBackfillThenFinish()
+            continueAfterNotificationAccess()
         }
     }
 
     /**
-     * Notification access powers RCS-only bank alerts. It has no runtime dialog, so we explain it
-     * and bounce the user to the system listener-settings screen; [onResume] resumes the flow when
-     * they come back. Already-granted or "Not now" goes straight to the backfill prompt.
+     * Notification access powers RCS-only bank alerts (and is the sole capture path on the Play
+     * flavor). It has no runtime dialog, so we explain it and bounce the user to the system
+     * listener-settings screen; [onResume] resumes the flow when they come back. Already-granted or
+     * "Not now" continues immediately.
      */
-    private fun promptNotificationAccessThenBackfill() {
+    private fun promptNotificationAccessThenContinue() {
         if (NotificationAccess.isGranted(this)) {
-            promptBackfillThenFinish()
+            continueAfterNotificationAccess()
             return
         }
         AlertDialog.Builder(this)
             .setTitle(R.string.onb_notif_title)
             .setMessage(R.string.onb_notif_msg)
-            .setNegativeButton(R.string.onb_notif_skip) { _, _ -> promptBackfillThenFinish() }
+            .setNegativeButton(R.string.onb_notif_skip) { _, _ -> continueAfterNotificationAccess() }
             .setPositiveButton(R.string.onb_notif_enable) { _, _ ->
                 pendingNotifContinue = true
                 NotificationAccess.openSettings(this)
             }
             .setCancelable(false)
             .show()
+    }
+
+    /** Backfill is SMS-only, so the notification-only flavor finishes straight after notif access. */
+    private fun continueAfterNotificationAccess() {
+        if (BuildConfig.SMS_ENABLED) promptBackfillThenFinish() else finishOnboarding(runBackfill = false)
     }
 
     private fun promptBackfillThenFinish() {
