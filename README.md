@@ -15,17 +15,36 @@ Designed for Indian bank SMS (HDFC, SBI, ICICI, Axis, Kotak, plus mutual-fund an
 
 For the full spec, design choices, and future-work backlog, see [SPEC.md](SPEC.md).
 
+## Build variants
+
+The app ships in two product flavors (dimension `dist`), differing only in how
+transactions are captured:
+
+- **`full`** — reads bank **SMS** directly (`RECEIVE_SMS`/`READ_SMS` + an SMS
+  broadcast receiver), plus the notification listener for RCS. The complete
+  experience, for off-Play distribution (e.g. Firebase App Distribution / direct
+  APK). Reports its version with a `-full` suffix.
+- **`play`** — **notification-listener only**, no SMS permissions. Captures bank
+  alerts from notifications, which keeps it within Google Play's SMS policy.
+
+Shared code branches on `BuildConfig.SMS_ENABLED`; the SMS permissions and
+receiver live in `src/full/`, and `src/play/` overrides the onboarding/permission
+strings to a notification-access framing. Each flavor combines with the standard
+`debug`/`release` build types (e.g. `fullDebug`, `playRelease`).
+
 ## Build & install
 
 ```bash
-# debug build
-./gradlew :app:assembleDebug
+# debug build (pick a flavor: Full = SMS, Play = notification-only)
+./gradlew :app:assembleFullDebug
+./gradlew :app:assemblePlayDebug
 
 # run unit tests
-./gradlew :app:testDebugUnitTest
+./gradlew :app:testFullDebugUnitTest
 
 # install on a connected device
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/full/debug/app-full-debug.apk
+adb install -r app/build/outputs/apk/play/debug/app-play-debug.apk
 ```
 
 Java 17 + Android SDK with `compileSdk 36`, `minSdk 26`. The Gradle wrapper uses the bundled toolchain (JBR 21 if you launch from Android Studio; set `JAVA_HOME` to your Studio's `jbr/` when running from the CLI).
