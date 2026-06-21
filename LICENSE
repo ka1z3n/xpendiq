@@ -1,0 +1,83 @@
+Xpendiq Source-Available License
+Copyright (c) 2026 Kanishk Sonkusre. All rights reserved.
+
+This is a source-available license. The source code is published so that
+others may read it, learn from it, and experiment with it privately. It is
+NOT an open-source license as defined by the Open Source Initiative, and it
+does NOT grant the freedoms of redistribution or commercial use.
+
+By accessing, copying, or using this software or any part of it (the
+"Software"), you agree to the terms below.
+
+1. DEFINITIONS
+   "Author" means the copyright holder named above.
+   "You" means any individual or entity exercising rights under this license.
+   "Fork" means a personal copy of the repository made for viewing, study, or
+   private modification (including a fork created through a code-hosting
+   platform such as GitHub).
+   "Distribute" means to give, share, transmit, publish, sublicense, sell, or
+   otherwise make the Software, any modified version of it, or any work derived
+   from it, available to any third party, in source or compiled form.
+
+2. PERMISSIONS (what you MAY do)
+   Subject to the conditions and restrictions below, the Author grants you a
+   worldwide, royalty-free, non-exclusive, non-transferable, revocable license
+   to:
+   (a) view and read the source code;
+   (b) Fork the repository and make a private copy;
+   (c) modify your own copy for personal, non-commercial study and
+       experimentation;
+   (d) build and run the Software on devices you own or control, for your own
+       personal, non-commercial use.
+
+3. RESTRICTIONS (what you MAY NOT do)
+   Except with the Author's prior written permission, you may NOT:
+   (a) Distribute the Software or any modified or derivative version of it, in
+       whole or in part, in source or compiled form;
+   (b) sell, rent, lease, or otherwise commercialize the Software, or charge
+       any fee for it or for access to it;
+   (c) use the Software, in whole or in part, for any commercial purpose,
+       including within any product, service, or organization operated for
+       commercial advantage or monetary compensation;
+   (d) publish, submit, or upload the Software or any derivative of it to any
+       app store, app marketplace, or other distribution platform (including
+       but not limited to Google Play, the Apple App Store, F-Droid, Samsung
+       Galaxy Store, Amazon Appstore, or any web-based app distribution
+       service);
+   (e) remove, alter, or obscure this license, the copyright notice, or any
+       attribution in the Software.
+
+   For clarity: a Fork made for the permitted purposes in Section 2 is allowed
+   even though a hosting platform may technically mirror it publicly. What is
+   prohibited is actively distributing the Software to others, publishing
+   builds, or any commercial exploitation.
+
+4. COMMERCIAL AND DISTRIBUTION LICENSING
+   Any use not expressly permitted above — including distribution, commercial
+   use, or app-store publication — requires a separate written agreement with
+   the Author. To request permission, contact: shadowshredder77@gmail.com
+
+5. CONTRIBUTIONS
+   If you submit changes (for example via a pull request), you grant the Author
+   a perpetual, worldwide, royalty-free, irrevocable license to use, modify,
+   and relicense your contribution as part of the Software. You confirm you
+   have the right to grant this.
+
+6. TERMINATION
+   This license and all rights granted to you terminate automatically if you
+   breach any term. Upon termination you must cease all use and destroy all
+   copies in your possession or control. Sections 4, 7, and 8 survive
+   termination.
+
+7. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+8. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+All rights not expressly granted are reserved by the Author.

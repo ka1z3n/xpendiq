@@ -80,4 +80,8 @@ adb logcat XpendiqTestIngest:V XpendiqNotifListener:V *:S
 
 ## License
 
-Personal project. No license declared yet.
+Source-available, **not** open source. You may view, fork, and privately
+experiment with the code, but you may **not** redistribute it, sell it, use it
+commercially, or publish it (or any derivative) to any app store without prior
+written permission. See [LICENSE](LICENSE) for the full terms; for commercial
+or distribution licensing, contact shadowshredder77@gmail.com.
