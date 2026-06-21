@@ -15,6 +15,19 @@ Designed for Indian bank SMS (HDFC, SBI, ICICI, Axis, Kotak, plus mutual-fund an
 
 For the full spec, design choices, and future-work backlog, see [SPEC.md](SPEC.md).
 
+## Screenshots
+
+> **Heads-up:** this is a public repo. Capture screenshots on a device or
+> emulator seeded with **demo data only** — no real bank SMS, amounts, account
+> numbers, VPAs, or merchant names. Drop the images into
+> [`docs/screenshots/`](docs/screenshots/) using the filenames below.
+> (The in-app screen lock sets `FLAG_SECURE`, so disable the lock before
+> capturing or the screenshots will come out black.)
+
+| Home | Transactions | Insights | Settings |
+|:----:|:------------:|:--------:|:--------:|
+| ![Home](docs/screenshots/home.png) | ![Transactions](docs/screenshots/transactions.png) | ![Insights](docs/screenshots/insights.png) | ![Settings](docs/screenshots/settings.png) |
+
 ## Build variants
 
 The app ships in two product flavors (dimension `dist`), differing only in how
