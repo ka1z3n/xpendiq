@@ -66,10 +66,13 @@ android {
         create("full") {
             dimension = "dist"
             buildConfigField("boolean", "SMS_ENABLED", "true")
+            // Distinguish the two builds in the About card / issue reports.
+            versionNameSuffix = "-full"
         }
         create("play") {
             dimension = "dist"
             buildConfigField("boolean", "SMS_ENABLED", "false")
+            // No suffix: Play users see a clean version (e.g. "1.0").
         }
     }
 
