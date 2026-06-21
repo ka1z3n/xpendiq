@@ -14,18 +14,15 @@ object DateFormat {
     private val dayMonth = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH)
     private val dayMonthYear = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
 
-    /** Row line: "Today, 18:42" / "Yesterday, 09:15" / "23 May, 18:42" / "12 Jan 2025, 14:00". */
+    /**
+     * Row line: "Today, 18:42" / "Yesterday, 09:15" / "23 May, 18:42" / "12 Jan 2025, 14:00".
+     * The time is dropped when the timestamp landed on midnight — an SMS parsed with a date but
+     * no time — so we show "Today" instead of a misleading "Today, 00:00".
+     */
     fun row(epochMillis: Long): String {
-        val ldt = LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), zone)
-        val today = LocalDate.now(zone)
-        val date = ldt.toLocalDate()
-        val time = ldt.format(timeFmt)
-        return when {
-            date == today -> "Today, $time"
-            date == today.minusDays(1) -> "Yesterday, $time"
-            date.year == today.year -> "${date.format(dayMonth)}, $time"
-            else -> "${date.format(dayMonthYear)}, $time"
-        }
+        val day = headerForDay(epochMillis)
+        val time = timeOfDay(epochMillis)
+        return if (time != null) "$day, $time" else day
     }
 
     /**
