@@ -3,6 +3,7 @@ package com.kaizenll.xpendiq.ui.transactions
 import com.kaizenll.xpendiq.data.entity.Category
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
 import com.kaizenll.xpendiq.util.DateFormat
+import com.kaizenll.xpendiq.util.Fx
 
 object TransactionListBuilder {
 
@@ -24,7 +25,9 @@ object TransactionListBuilder {
             out += DaySection(
                 dayKey = dayKey,
                 label = DateFormat.headerForDay(first.occurredAt),
-                totalAmountPaise = dayTxns.sumOf { it.amountPaise },
+                totalAmountPaise = dayTxns.sumOf {
+                    Fx.inrEquivalentPaise(it.amountPaise, it.currency, it.amountInrPaise)
+                },
                 rows = dayTxns.map { TransactionListItem.Row(it, byId[it.categoryId]) },
             )
         }

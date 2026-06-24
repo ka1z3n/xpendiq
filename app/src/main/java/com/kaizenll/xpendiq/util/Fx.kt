@@ -19,4 +19,12 @@ object Fx {
         if (rate == null || rate <= 0.0) return null
         return Math.round(amountMinor * rate)
     }
+
+    /**
+     * A row's value in INR paise for totalling: the raw amount for INR rows, the frozen
+     * [amountInrPaise] for converted foreign rows, and 0 for foreign rows not yet converted.
+     * Mirrors the CASE expression the DAO uses so on-device day totals match Insights/Home.
+     */
+    fun inrEquivalentPaise(amountMinor: Long, currency: String, amountInrPaise: Long?): Long =
+        if (currency.equals(HOME_CURRENCY, ignoreCase = true)) amountMinor else (amountInrPaise ?: 0L)
 }
