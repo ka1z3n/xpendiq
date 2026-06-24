@@ -139,6 +139,13 @@
     <string name="settings_section_backfill">Backfill</string>
     <string name="settings_section_categories">Categories</string>
     <string name="settings_manage_categories">Manage categories</string>
+    <string name="settings_fx_label">Foreign currency rate</string>
+    <string name="settings_fx_unset">Set a USD → INR rate to include foreign spends</string>
+    <string name="settings_fx_value">1 USD = ₹%1$s</string>
+    <string name="settings_fx_dialog_title">USD → INR rate</string>
+    <string name="settings_fx_dialog_msg">Used to convert USD transactions into your totals. Applied to past and future USD spends.</string>
+    <string name="settings_fx_dialog_hint">Rupees per 1 USD (e.g. 83)</string>
+    <string name="settings_fx_saved">Converted %1$d USD transaction(s)</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_data">Data</string>
     <string name="settings_section_help">Help</string>

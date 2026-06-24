@@ -27,6 +27,12 @@ data class TransactionEntity(
     val amountPaise: Long,
     /** ISO-4217 currency code. "INR" by default; "USD" for foreign-currency subscriptions. */
     val currency: String = "INR",
+    /**
+     * For a foreign-currency row, the INR-equivalent in paise, frozen at capture using the
+     * user's manual rate (Settings). Null for INR rows (use [amountPaise] directly) and for
+     * foreign rows captured while no rate was set. Totals sum this for foreign rows.
+     */
+    val amountInrPaise: Long? = null,
     val type: TransactionType,
     val paymentMode: PaymentMode,
     val merchantRaw: String?,

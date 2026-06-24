@@ -45,7 +45,7 @@ object TransactionBackup {
     )
     private val RULE_HEADER = listOf("pattern", "category", "categoryType", "priority")
     private val TXN_HEADER = listOf(
-        "date", "type", "amount", "currency", "category", "merchant",
+        "date", "type", "amount", "currency", "amountInr", "category", "merchant",
         "paymentMode", "notes", "accountTail", "merchantNormalized",
         "sender", "isUserEdited", "smsBodyHash", "smsBody",
     )
@@ -108,6 +108,7 @@ object TransactionBackup {
         t.type.name,
         String.format(Locale.ROOT, "%.2f", t.amountPaise / 100.0),
         t.currency,
+        t.amountInrPaise?.let { String.format(Locale.ROOT, "%.2f", it / 100.0) }.orEmpty(),
         category?.name ?: "Uncategorized",
         t.merchantRaw.orEmpty(),
         t.paymentMode.name,
@@ -269,6 +270,12 @@ object TransactionBackup {
                     .atZone(zone).toInstant().toEpochMilli()
                 val amountPaise = Math.round(col("amount").trim().toDouble() * 100.0)
                 val currency = col("currency").trim().ifBlank { "INR" }
+                // Restore the frozen INR-equivalent when present (older/legacy CSVs omit it; such
+                // foreign rows fill in when the user next sets the rate).
+                val amountInrPaise = col("amountInr").trim()
+                    .takeIf { it.isNotBlank() }
+                    ?.toDoubleOrNull()
+                    ?.let { Math.round(it * 100.0) }
                 val paymentMode = runCatching { PaymentMode.valueOf(col("paymentMode").trim()) }
                     .getOrDefault(PaymentMode.UNKNOWN)
                 val categoryName = col("category").trim().ifBlank { "Uncategorized" }
@@ -278,6 +285,7 @@ object TransactionBackup {
                 val entity = TransactionEntity(
                     amountPaise = amountPaise,
                     currency = currency,
+                    amountInrPaise = amountInrPaise,
                     type = type,
                     paymentMode = paymentMode,
                     merchantRaw = col("merchant").ifBlank { null },

@@ -198,6 +198,34 @@
 
                 </LinearLayout>
 
+                <View style="@style/SettingsDivider" />
+
+                <!-- Foreign-currency rate -->
+                <LinearLayout
+                    android:id="@+id/fx_row"
+                    style="@style/SettingsRow">
+
+                    <ImageView
+                        style="@style/SettingsRowIcon"
+                        android:src="@drawable/ic_currency_exchange" />
+
+                    <LinearLayout style="@style/SettingsRowText">
+
+                        <TextView
+                            style="@style/SettingsRowTitle"
+                            android:text="@string/settings_fx_label" />
+
+                        <TextView
+                            android:id="@+id/fx_subtitle"
+                            style="@style/SettingsRowSubtitle"
+                            tools:text="1 USD = ₹83.00" />
+
+                    </LinearLayout>
+
+                    <ImageView style="@style/SettingsRowChevron" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

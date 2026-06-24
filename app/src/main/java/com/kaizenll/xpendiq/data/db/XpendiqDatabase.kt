@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
         DeletedSmsHash::class,
         IgnoredSender::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -55,7 +55,7 @@ abstract class XpendiqDatabase : RoomDatabase() {
                 XpendiqDatabase::class.java,
                 "xpendiq.db",
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
@@ -78,6 +78,14 @@ abstract class XpendiqDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE categories ADD COLUMN excludedFromTotals INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("UPDATE categories SET excludedFromTotals = 1 WHERE name = 'Transfers (CC payment)'")
+            }
+        }
+
+        // Frozen INR-equivalent for foreign-currency rows (nullable). Populated at capture from
+        // the user's manual FX rate; existing foreign rows are filled when a rate is first set.
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN amountInrPaise INTEGER")
             }
         }
     }

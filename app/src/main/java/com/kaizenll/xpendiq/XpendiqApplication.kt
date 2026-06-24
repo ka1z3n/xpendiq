@@ -36,6 +36,7 @@ class XpendiqApplication : Application() {
             merchantRuleDao = database.merchantRuleDao(),
             parser = parser,
             categorizer = categorizer,
+            fxRateProvider = { com.kaizenll.xpendiq.util.Preferences.getUsdInrRate(this) },
         )
     }
 

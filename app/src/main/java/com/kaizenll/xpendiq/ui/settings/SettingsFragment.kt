@@ -5,9 +5,13 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.view.View
 import android.view.WindowManager
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.TextView
+import java.util.Locale
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.biometric.BiometricManager
@@ -96,6 +100,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             findNavController().navigate(R.id.categoriesFragment)
         }
 
+        view.findViewById<View>(R.id.fx_row).setOnClickListener { showFxRateDialog() }
+
         view.findViewById<View>(R.id.report_row).setOnClickListener {
             findNavController().navigate(R.id.reportIssueFragment)
         }
@@ -132,6 +138,57 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         refreshPermissionStatus()
         refreshNotificationAccessStatus()
         refreshCategoryCount()
+        refreshFxRate()
+    }
+
+    private fun refreshFxRate() {
+        val subtitle = view?.findViewById<TextView>(R.id.fx_subtitle) ?: return
+        val rate = viewModel.usdInrRate()
+        subtitle.text = if (rate == null) {
+            getString(R.string.settings_fx_unset)
+        } else {
+            getString(R.string.settings_fx_value, formatRate(rate))
+        }
+    }
+
+    /** Trim a trailing ".00" so 83.0 reads "83" but 83.50 stays "83.50". */
+    private fun formatRate(rate: Double): String {
+        val s = String.format(Locale.US, "%.2f", rate)
+        return s.removeSuffix(".00")
+    }
+
+    private fun showFxRateDialog() {
+        val current = viewModel.usdInrRate()
+        val input = EditText(requireContext()).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            hint = getString(R.string.settings_fx_dialog_hint)
+            if (current != null) setText(formatRate(current))
+        }
+        val container = FrameLayout(requireContext()).apply {
+            val pad = (20 * resources.displayMetrics.density).toInt()
+            setPadding(pad, 0, pad, 0)
+            addView(input)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.settings_fx_dialog_title)
+            .setMessage(R.string.settings_fx_dialog_msg)
+            .setView(container)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val rate = input.text.toString().trim().toDoubleOrNull()
+                if (rate == null || rate <= 0.0) {
+                    Snackbar.make(requireView(), R.string.settings_fx_dialog_hint, Snackbar.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val count = viewModel.setUsdInrRate(rate)
+                    refreshFxRate()
+                    view?.let {
+                        Snackbar.make(it, getString(R.string.settings_fx_saved, count), Snackbar.LENGTH_LONG).show()
+                    }
+                }
+            }
+            .show()
     }
 
     private fun refreshPermissionStatus() {

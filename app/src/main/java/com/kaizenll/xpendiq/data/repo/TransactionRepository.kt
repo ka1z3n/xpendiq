@@ -12,6 +12,7 @@ import com.kaizenll.xpendiq.data.entity.PaymentMode
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
 import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.parser.SmsParser
+import com.kaizenll.xpendiq.util.Fx
 import com.kaizenll.xpendiq.util.Hashing
 import java.util.UUID
 
@@ -23,6 +24,9 @@ class TransactionRepository(
     private val merchantRuleDao: MerchantRuleDao,
     private val parser: SmsParser,
     private val categorizer: Categorizer,
+    // Current manual USD→INR rate (null when unset). A lambda so the latest value is read at
+    // capture time without threading Context through every caller.
+    private val fxRateProvider: () -> Double? = { null },
 ) {
 
     enum class IngestResult {
@@ -58,6 +62,7 @@ class TransactionRepository(
         val entity = TransactionEntity(
             amountPaise = parsed.amountPaise,
             currency = parsed.currency,
+            amountInrPaise = Fx.toInrPaise(parsed.amountPaise, parsed.currency, fxRateProvider()),
             type = finalType,
             paymentMode = parsed.paymentMode,
             merchantRaw = parsed.merchantRaw,
@@ -204,6 +209,7 @@ class TransactionRepository(
         val entity = TransactionEntity(
             amountPaise = amountPaise,
             currency = currency,
+            amountInrPaise = Fx.toInrPaise(amountPaise, currency, fxRateProvider()),
             type = type,
             paymentMode = paymentMode,
             merchantRaw = merchantRaw?.takeIf { it.isNotBlank() },

@@ -149,12 +149,19 @@ interface TransactionDao {
     )
     suspend fun reassignCategory(oldCategoryId: Long, newCategoryId: Long, now: Long): Int
 
-    /** INR-only sum. Multi-currency totalling is deferred until we have FX rates. */
+    /**
+     * Sum in INR paise. INR rows count directly; foreign rows count their frozen [amountInrPaise]
+     * (converted via the user's manual rate). Foreign rows with no conversion yet contribute 0,
+     * so they stay out of totals until a rate is set.
+     */
     @Query(
         """
-        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        SELECT COALESCE(SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ), 0) FROM transactions
         WHERE type = :type
-          AND currency = 'INR'
           AND occurredAt BETWEEN :startMillis AND :endMillis
         """
     )
@@ -163,9 +170,12 @@ interface TransactionDao {
     /** Same as [observeTotal] but excludes a category id. Pass -1L for none. */
     @Query(
         """
-        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        SELECT COALESCE(SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ), 0) FROM transactions
         WHERE type = :type
-          AND currency = 'INR'
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId != :excludeCategoryId
         """
@@ -177,17 +187,20 @@ interface TransactionDao {
         excludeCategoryId: Long,
     ): Flow<Long>
 
-    /** INR-only per-category totals; multi-currency rows are excluded. */
+    /** Per-category totals in INR paise (foreign rows folded in via their frozen [amountInrPaise]). */
     @Query(
         """
-        SELECT categoryId AS categoryId, SUM(amountPaise) AS totalPaise
+        SELECT categoryId AS categoryId, SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ) AS totalPaise
         FROM transactions
         WHERE type = :type
-          AND currency = 'INR'
           AND occurredAt BETWEEN :startMillis AND :endMillis
         GROUP BY categoryId
-        HAVING SUM(amountPaise) > 0
-        ORDER BY SUM(amountPaise) DESC
+        HAVING totalPaise > 0
+        ORDER BY totalPaise DESC
         """
     )
     fun observeTotalsByCategory(
@@ -202,9 +215,12 @@ interface TransactionDao {
      */
     @Query(
         """
-        SELECT COALESCE(SUM(amountPaise), 0) FROM transactions
+        SELECT COALESCE(SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ), 0) FROM transactions
         WHERE type = :type
-          AND currency = 'INR'
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
         """
@@ -218,15 +234,18 @@ interface TransactionDao {
     /** Per-category totals as [observeTotalsByCategory], minus the [Category.excludedFromTotals] ones. */
     @Query(
         """
-        SELECT categoryId AS categoryId, SUM(amountPaise) AS totalPaise
+        SELECT categoryId AS categoryId, SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ) AS totalPaise
         FROM transactions
         WHERE type = :type
-          AND currency = 'INR'
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
         GROUP BY categoryId
-        HAVING SUM(amountPaise) > 0
-        ORDER BY SUM(amountPaise) DESC
+        HAVING totalPaise > 0
+        ORDER BY totalPaise DESC
         """
     )
     fun observeTotalsByCategoryExcludingFlagged(
@@ -234,4 +253,17 @@ interface TransactionDao {
         startMillis: Long,
         endMillis: Long,
     ): Flow<List<CategoryTotal>>
+
+    /**
+     * Recompute the frozen INR-equivalent for every row of [currency] using [rate]. Run when the
+     * user sets or changes the manual rate, so existing foreign rows fold into totals immediately.
+     */
+    @Query(
+        """
+        UPDATE transactions
+        SET amountInrPaise = CAST(ROUND(amountPaise * :rate) AS INTEGER), updatedAt = :now
+        WHERE currency = :currency
+        """
+    )
+    suspend fun recomputeInrForCurrency(currency: String, rate: Double, now: Long): Int
 }
