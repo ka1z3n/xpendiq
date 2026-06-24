@@ -9,10 +9,10 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.Category
+import com.kaizenll.xpendiq.data.entity.PaymentMode
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
 import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.util.CurrencyFormat
-import com.kaizenll.xpendiq.util.DateFormat
 import com.kaizenll.xpendiq.util.Fx
 
 /**
@@ -39,12 +39,16 @@ object TransactionRowBinder {
 
         val merchant = txn.merchantRaw?.takeIf { it.isNotBlank() } ?: "Unknown"
         merchantView.text = merchant
-        // The day is already the section header; show only the clock time, and hide it when the
-        // SMS had no time (midnight) so we never render a misleading "00:00".
-        val time = DateFormat.timeOfDay(txn.occurredAt)
-        timeView.text = time ?: ""
-        timeView.visibility = if (time == null) View.GONE else View.VISIBLE
-        paymentModeView.text = txn.paymentMode.name.replace('_', ' ')
+        // The day is already the section header and the full date/time lives in the detail sheet,
+        // so the list rows stay time-free (most SMS carry no time anyway → it'd be blank or 00:00).
+        timeView.visibility = View.GONE
+        // Hide the payment mode when it's UNKNOWN rather than printing a literal "UNKNOWN" chip.
+        if (txn.paymentMode == PaymentMode.UNKNOWN) {
+            paymentModeView.visibility = View.GONE
+        } else {
+            paymentModeView.visibility = View.VISIBLE
+            paymentModeView.text = txn.paymentMode.name.replace('_', ' ')
+        }
 
         val categoryColor = category?.colorHex?.let { hex ->
             runCatching { Color.parseColor(hex) }.getOrNull()
