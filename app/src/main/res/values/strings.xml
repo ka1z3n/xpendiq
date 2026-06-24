@@ -146,6 +146,7 @@
     <string name="settings_fx_dialog_msg">Used to convert USD transactions into your totals. Applied to past and future USD spends.</string>
     <string name="settings_fx_dialog_hint">Rupees per 1 USD (e.g. 83)</string>
     <string name="settings_fx_saved">Converted %1$d USD transaction(s)</string>
+    <string name="fx_approx">≈ %1$s</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_data">Data</string>
     <string name="settings_section_help">Help</string>

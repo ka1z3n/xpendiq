@@ -13,6 +13,7 @@ import com.kaizenll.xpendiq.data.entity.TransactionEntity
 import com.kaizenll.xpendiq.data.entity.TransactionType
 import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.DateFormat
+import com.kaizenll.xpendiq.util.Fx
 
 /**
  * Renders an `item_transaction.xml` row from a [TransactionEntity] + optional [Category].
@@ -34,6 +35,7 @@ object TransactionRowBinder {
         val paymentModeView = view.findViewById<TextView>(R.id.payment_mode)
         val avatarView = view.findViewById<TextView>(R.id.avatar)
         val fxFlagView = view.findViewById<TextView>(R.id.fx_flag)
+        val amountInrView = view.findViewById<TextView>(R.id.amount_inr)
 
         val merchant = txn.merchantRaw?.takeIf { it.isNotBlank() } ?: "Unknown"
         merchantView.text = merchant
@@ -52,8 +54,20 @@ object TransactionRowBinder {
         bindAvatar(avatarView, merchant, categoryColor)
         bindAmount(amountView, txn)
         bindFxFlag(fxFlagView, txn)
+        bindInrEquivalent(amountInrView, txn)
 
         view.setOnClickListener { if (onClick != null) onClick(txn) }
+    }
+
+    /** For a converted foreign row, show the frozen INR-equivalent as an "≈ ₹…" subtext. */
+    private fun bindInrEquivalent(view: TextView, txn: TransactionEntity) {
+        val inr = txn.amountInrPaise
+        if (txn.currency.equals(Fx.HOME_CURRENCY, ignoreCase = true) || inr == null) {
+            view.visibility = View.GONE
+        } else {
+            view.visibility = View.VISIBLE
+            view.text = view.context.getString(R.string.fx_approx, CurrencyFormat.paiseToInr(inr))
+        }
     }
 
     private fun bindCategoryChip(categoryView: TextView, category: Category?, color: Int?) {
