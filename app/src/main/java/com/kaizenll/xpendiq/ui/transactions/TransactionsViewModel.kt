@@ -77,12 +77,14 @@ class TransactionsViewModel(app: Application) : AndroidViewModel(app) {
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /**
-     * Payment modes that actually occur in the current tab's transactions, in enum order. Derived
-     * from the data (no dead filters) and started eagerly so the filter sheet can read [value].
+     * Payment modes offered in the filter, in enum order. Modes that occur in the current tab's
+     * data (no dead SMS-mode filters), plus CASH always — cash is manual-only (never parsed from
+     * SMS), so it could never be discovered otherwise. Started eagerly so the sheet can read [value].
      */
     val availablePaymentModes: StateFlow<List<PaymentMode>> =
         txnsForType.map { txns ->
             val present = txns.mapTo(mutableSetOf()) { it.paymentMode }
+            present.add(PaymentMode.CASH)
             PaymentMode.values().filter { it != PaymentMode.UNKNOWN && it in present }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

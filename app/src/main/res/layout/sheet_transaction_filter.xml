@@ -15,14 +15,15 @@
         android:layout_marginBottom="4dp"
         android:background="@drawable/bg_grab_handle" />
 
-    <!-- Header: title + Reset -->
+    <!-- Header: title + Reset + Apply -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
+        android:paddingStart="20dp"
         android:paddingTop="6dp"
+        android:paddingEnd="12dp"
         android:paddingBottom="4dp">
 
         <TextView
@@ -46,6 +47,15 @@
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorPrimary" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/apply_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/filter_apply" />
+
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -59,7 +69,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:paddingBottom="24dp">
 
             <!-- Category -->
             <LinearLayout
@@ -117,14 +127,5 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/apply_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="20dp"
-        android:text="@string/filter_apply" />
 
 </LinearLayout>
