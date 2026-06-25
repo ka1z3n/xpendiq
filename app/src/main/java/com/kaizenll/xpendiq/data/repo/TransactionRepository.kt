@@ -27,6 +27,9 @@ class TransactionRepository(
     // Current manual USD→INR rate (null when unset). A lambda so the latest value is read at
     // capture time without threading Context through every caller.
     private val fxRateProvider: () -> Double? = { null },
+    // Whether the user is currently entitled (in trial or subscribed). Read at capture time to
+    // decide a newly-ingested row's lock state. Defaults to entitled so tests/manual paths are open.
+    private val entitledProvider: () -> Boolean = { true },
 ) {
 
     enum class IngestResult {
@@ -64,6 +67,8 @@ class TransactionRepository(
             currency = parsed.currency,
             amountInrPaise = Fx.toInrPaise(parsed.amountPaise, parsed.currency, fxRateProvider()),
             type = finalType,
+            // Captured while the trial is over and unsubscribed → hidden until the user subscribes.
+            locked = !entitledProvider(),
             paymentMode = parsed.paymentMode,
             merchantRaw = parsed.merchantRaw,
             merchantNormalized = parsed.merchantNormalized,
@@ -84,6 +89,15 @@ class TransactionRepository(
     }
 
     fun observeByType(type: TransactionType) = transactionDao.observeByType(type)
+
+    /** Reveal every locked row. Call when the user becomes entitled. Returns rows unlocked. */
+    suspend fun unlockAll(): Int = transactionDao.unlockAll()
+
+    /** Count of hidden (locked) rows — the "N transactions" half of the paywall teaser. */
+    suspend fun lockedCount(): Int = transactionDao.countLocked()
+
+    /** INR-paise spend withheld behind the paywall — the "₹X" half of the teaser. */
+    suspend fun lockedSpendInrPaise(): Long = transactionDao.lockedSpendInrPaise()
 
     suspend fun delete(txn: TransactionEntity) {
         transactionDao.deleteById(txn.id)

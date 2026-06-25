@@ -36,10 +36,10 @@ interface TransactionDao {
     // Secondary `id DESC` breaks ties: SMS dates parse to midnight, so same-day rows share an
     // occurredAt; falling back to insertion order (highest id = most recently added) keeps the
     // newest transaction at the top of its day group instead of the bottom.
-    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC, id DESC")
+    @Query("SELECT * FROM transactions WHERE type = :type AND locked = 0 ORDER BY occurredAt DESC, id DESC")
     fun observeByType(type: TransactionType): Flow<List<TransactionEntity>>
 
-    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY occurredAt DESC, id DESC LIMIT :limit")
+    @Query("SELECT * FROM transactions WHERE type = :type AND locked = 0 ORDER BY occurredAt DESC, id DESC LIMIT :limit")
     fun observeRecent(type: TransactionType, limit: Int): Flow<List<TransactionEntity>>
 
     /** Pass -1L as the sentinel when nothing should be excluded. */
@@ -48,6 +48,7 @@ interface TransactionDao {
         SELECT * FROM transactions
         WHERE type = :type
           AND categoryId != :excludeCategoryId
+          AND locked = 0
         ORDER BY occurredAt DESC, id DESC
         """
     )
@@ -61,6 +62,7 @@ interface TransactionDao {
         SELECT * FROM transactions
         WHERE type = :type
           AND categoryId = :uncategorizedId
+          AND locked = 0
         ORDER BY occurredAt DESC, id DESC
         """
     )
@@ -71,6 +73,7 @@ interface TransactionDao {
         SELECT COUNT(*) FROM transactions
         WHERE type = :type
           AND categoryId = :uncategorizedId
+          AND locked = 0
         """
     )
     fun observeUncategorizedCount(type: TransactionType, uncategorizedId: Long): Flow<Int>
@@ -122,6 +125,28 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE currency = :currency")
     suspend fun countByCurrency(currency: String): Int
 
+    // --- Paywall lock (see TransactionEntity.locked) ---
+
+    /** Unlock every row — called when the user becomes entitled (subscribes). Returns rows changed. */
+    @Query("UPDATE transactions SET locked = 0 WHERE locked = 1")
+    suspend fun unlockAll(): Int
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE locked = 1")
+    suspend fun countLocked(): Int
+
+    /** INR-paise spend (DEBIT) total of locked rows — the "₹X withheld" figure for the teaser. */
+    @Query(
+        """
+        SELECT COALESCE(SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ), 0) FROM transactions
+        WHERE locked = 1 AND type = 'DEBIT'
+        """
+    )
+    suspend fun lockedSpendInrPaise(): Long
+
     /**
      * Used by seed migration to re-route existing transactions to a new/changed category
      * when their merchantNormalized substring-matches a seed rule. Preserves user edits.
@@ -166,6 +191,7 @@ interface TransactionDao {
         ), 0) FROM transactions
         WHERE type = :type
           AND occurredAt BETWEEN :startMillis AND :endMillis
+          AND locked = 0
         """
     )
     fun observeTotal(type: TransactionType, startMillis: Long, endMillis: Long): Flow<Long>
@@ -181,6 +207,7 @@ interface TransactionDao {
         WHERE type = :type
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId != :excludeCategoryId
+          AND locked = 0
         """
     )
     fun observeTotalExcludingCategory(
@@ -201,6 +228,7 @@ interface TransactionDao {
         FROM transactions
         WHERE type = :type
           AND occurredAt BETWEEN :startMillis AND :endMillis
+          AND locked = 0
         GROUP BY categoryId
         HAVING totalPaise > 0
         ORDER BY totalPaise DESC
@@ -226,6 +254,7 @@ interface TransactionDao {
         WHERE type = :type
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
+          AND locked = 0
         """
     )
     fun observeTotalExcludingFlagged(
@@ -246,6 +275,7 @@ interface TransactionDao {
         WHERE type = :type
           AND occurredAt BETWEEN :startMillis AND :endMillis
           AND categoryId NOT IN (SELECT id FROM categories WHERE excludedFromTotals = 1)
+          AND locked = 0
         GROUP BY categoryId
         HAVING totalPaise > 0
         ORDER BY totalPaise DESC

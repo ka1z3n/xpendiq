@@ -27,6 +27,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
 import com.kaizenll.xpendiq.BuildConfig
 import com.kaizenll.xpendiq.R
+import com.kaizenll.xpendiq.XpendiqApplication
+import com.kaizenll.xpendiq.entitlement.EntitlementState
 import com.kaizenll.xpendiq.util.AppLock
 import com.kaizenll.xpendiq.util.NotificationAccess
 import com.kaizenll.xpendiq.util.Preferences
@@ -113,6 +115,8 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         view.findViewById<View>(R.id.privacy_row).setOnClickListener {
             openUrl(getString(R.string.url_privacy))
         }
+
+        setupDebugEntitlement(view)
 
         view.findViewById<View>(R.id.export_row).setOnClickListener {
             exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
@@ -429,6 +433,62 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     /** Open an external link (source repo / privacy policy); no-op if no browser can handle it. */
     private fun openUrl(url: String) {
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
+
+    // --- Debug-only entitlement simulator (until Play Billing is wired) ---
+
+    private fun entitlementApp() = requireContext().applicationContext as XpendiqApplication
+
+    private fun setupDebugEntitlement(view: View) {
+        val header = view.findViewById<View>(R.id.debug_section_header)
+        val card = view.findViewById<View>(R.id.debug_section_card)
+        val show = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
+        header.visibility = show
+        card.visibility = show
+        if (!BuildConfig.DEBUG) return
+        view.findViewById<View>(R.id.debug_entitlement_row).setOnClickListener {
+            showDebugEntitlementDialog()
+        }
+        refreshDebugEntitlement()
+    }
+
+    private fun refreshDebugEntitlement() {
+        val subtitle = view?.findViewById<TextView>(R.id.debug_entitlement_subtitle) ?: return
+        subtitle.text = when (val s = entitlementApp().entitlement.state.value) {
+            is EntitlementState.InTrial -> "In trial · ${s.daysLeft} days left"
+            EntitlementState.Expired -> "Trial expired · read-only + locking"
+            EntitlementState.Subscribed -> "Subscribed · full access"
+        }
+    }
+
+    private fun showDebugEntitlementDialog() {
+        val ctx = requireContext()
+        val now = System.currentTimeMillis()
+        val day = 24L * 60 * 60 * 1000
+        val options = arrayOf(
+            "Trial — 30 days left",
+            "Trial — 5 days left (day 25)",
+            "Trial — 1 day left",
+            "Expired",
+            "Subscribed",
+            "Reset (fresh trial)",
+        )
+        AlertDialog.Builder(ctx)
+            .setTitle(R.string.settings_debug_entitlement)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
+                    1 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 25 * day) }
+                    2 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 29 * day) }
+                    3 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 31 * day) }
+                    4 -> Preferences.setSubscribed(ctx, true)
+                    5 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
+                }
+                entitlementApp().entitlement.refresh()
+                refreshDebugEntitlement()
+                view?.let { Snackbar.make(it, "Entitlement → ${options[which]}", Snackbar.LENGTH_SHORT).show() }
+            }
+            .show()
     }
 
     companion object {

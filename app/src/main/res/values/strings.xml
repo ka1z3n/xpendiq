@@ -165,6 +165,20 @@
     <string name="settings_section_help">Help</string>
     <string name="settings_report">Report an issue</string>
     <string name="settings_report_desc">Bugs or a missed transaction</string>
+    <plurals name="entitlement_trial_title">
+        <item quantity="one">Free trial · %d day left</item>
+        <item quantity="other">Free trial · %d days left</item>
+    </plurals>
+    <string name="entitlement_trial_subtitle">Full access during your trial. Subscribe anytime to keep it.</string>
+    <string name="entitlement_expired_title">Trial ended</string>
+    <plurals name="entitlement_locked_teaser">
+        <item quantity="one">%1$s across %2$d transaction locked — subscribe to unlock</item>
+        <item quantity="other">%1$s across %2$d transactions locked — subscribe to unlock</item>
+    </plurals>
+    <string name="entitlement_expired_readonly">Read-only. Subscribe to add new transactions.</string>
+
+    <string name="settings_section_debug">Developer</string>
+    <string name="settings_debug_entitlement">Simulate entitlement</string>
     <string name="settings_source">View source code</string>
     <string name="settings_source_desc">Xpendiq is public on GitHub — inspect it yourself</string>
     <string name="settings_privacy">Privacy policy</string>

@@ -19,6 +19,8 @@ import com.kaizenll.xpendiq.ui.transactions.TransactionDetailSheet
 import com.kaizenll.xpendiq.ui.transactions.TransactionListItem
 import com.kaizenll.xpendiq.ui.transactions.TransactionRowBinder
 import com.kaizenll.xpendiq.BuildConfig
+import com.kaizenll.xpendiq.XpendiqApplication
+import com.kaizenll.xpendiq.entitlement.EntitlementState
 import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.Motion
 import com.kaizenll.xpendiq.util.NotificationAccess
@@ -176,6 +178,42 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     override fun onResume() {
         super.onResume()
         refreshBanner()
+        refreshEntitlementBanner()
+    }
+
+    /** Trial status / paywall teaser. Hidden when subscribed; shows the locked total when expired. */
+    private fun refreshEntitlementBanner() {
+        val view = view ?: return
+        val app = requireContext().applicationContext as XpendiqApplication
+        app.entitlement.refresh()
+        val banner = view.findViewById<MaterialCardView>(R.id.entitlement_banner)
+        val title = view.findViewById<TextView>(R.id.entitlement_banner_title)
+        val subtitle = view.findViewById<TextView>(R.id.entitlement_banner_subtitle)
+        when (val s = app.entitlement.state.value) {
+            EntitlementState.Subscribed -> banner.visibility = View.GONE
+            is EntitlementState.InTrial -> {
+                banner.visibility = View.VISIBLE
+                title.text = resources.getQuantityString(
+                    R.plurals.entitlement_trial_title, s.daysLeft, s.daysLeft,
+                )
+                subtitle.text = getString(R.string.entitlement_trial_subtitle)
+            }
+            EntitlementState.Expired -> {
+                banner.visibility = View.VISIBLE
+                title.text = getString(R.string.entitlement_expired_title)
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val count = app.repository.lockedCount()
+                    subtitle.text = if (count > 0) {
+                        val inr = CurrencyFormat.paiseToInr(app.repository.lockedSpendInrPaise())
+                        resources.getQuantityString(
+                            R.plurals.entitlement_locked_teaser, count, inr, count,
+                        )
+                    } else {
+                        getString(R.string.entitlement_expired_readonly)
+                    }
+                }
+            }
+        }
     }
 
     private fun refreshBanner() {

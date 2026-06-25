@@ -9,6 +9,7 @@ import com.kaizenll.xpendiq.data.db.XpendiqDatabase
 import com.kaizenll.xpendiq.data.db.StaleTransactionCleanup
 import com.kaizenll.xpendiq.data.repo.CategoryRepository
 import com.kaizenll.xpendiq.data.repo.TransactionRepository
+import com.kaizenll.xpendiq.entitlement.EntitlementManager
 import com.kaizenll.xpendiq.parser.SmsParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,9 @@ class XpendiqApplication : Application() {
     val database: XpendiqDatabase by lazy { XpendiqDatabase.get(this, appScope) }
 
     val parser: SmsParser by lazy { SmsParser() }
+
+    /** Trial / subscription state. Drives read-only gating and the lock flag on new captures. */
+    val entitlement: EntitlementManager by lazy { EntitlementManager(this) }
 
     val categorizer: Categorizer by lazy {
         Categorizer(database.categoryDao(), database.merchantRuleDao())
@@ -37,6 +41,7 @@ class XpendiqApplication : Application() {
             parser = parser,
             categorizer = categorizer,
             fxRateProvider = { com.kaizenll.xpendiq.util.Preferences.getUsdInrRate(this) },
+            entitledProvider = { entitlement.isEntitled() },
         )
     }
 
@@ -56,6 +61,13 @@ class XpendiqApplication : Application() {
             SeedMigration.run(database)
             ColorPaletteMigration.run(database)
             StaleTransactionCleanup.run(database, parser)
+        }
+        // Whenever the user is entitled (in trial or subscribed), make sure nothing stays hidden —
+        // this reveals rows that accrued while expired, the moment a subscription kicks in.
+        appScope.launch(Dispatchers.IO) {
+            entitlement.state.collect { state ->
+                if (state.isEntitled && repository.lockedCount() > 0) repository.unlockAll()
+            }
         }
     }
 }

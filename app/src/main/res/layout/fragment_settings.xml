@@ -492,6 +492,45 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- DEVELOPER (debug builds only; shown/hidden in code) -->
+        <TextView
+            android:id="@+id/debug_section_header"
+            style="@style/SettingsSectionHeader"
+            android:text="@string/settings_section_debug"
+            android:visibility="gone" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/debug_section_card"
+            style="@style/SettingsGroupCard"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/debug_entitlement_row"
+                style="@style/SettingsRow">
+
+                <ImageView
+                    style="@style/SettingsRowIcon"
+                    android:src="@drawable/ic_info" />
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_debug_entitlement" />
+
+                    <TextView
+                        android:id="@+id/debug_entitlement_subtitle"
+                        style="@style/SettingsRowSubtitle"
+                        tools:text="In trial · 30 days left" />
+
+                </LinearLayout>
+
+                <ImageView style="@style/SettingsRowChevron" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 
 </ScrollView>

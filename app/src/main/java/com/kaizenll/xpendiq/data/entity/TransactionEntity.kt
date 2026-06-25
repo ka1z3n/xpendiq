@@ -34,6 +34,13 @@ data class TransactionEntity(
      */
     val amountInrPaise: Long? = null,
     val type: TransactionType,
+    /**
+     * True for rows captured while the user was not entitled (trial expired, no subscription).
+     * Locked rows are hidden from every list/total and from CSV export, but keep accumulating;
+     * subscribing flips them all back to false. Always false for manual entries (those are only
+     * possible while entitled).
+     */
+    val locked: Boolean = false,
     val paymentMode: PaymentMode,
     val merchantRaw: String?,
     val merchantNormalized: String?,

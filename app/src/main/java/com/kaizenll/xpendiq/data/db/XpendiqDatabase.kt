@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
         DeletedSmsHash::class,
         IgnoredSender::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -55,7 +55,7 @@ abstract class XpendiqDatabase : RoomDatabase() {
                 XpendiqDatabase::class.java,
                 "xpendiq.db",
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
@@ -86,6 +86,14 @@ abstract class XpendiqDatabase : RoomDatabase() {
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN amountInrPaise INTEGER")
+            }
+        }
+
+        // Paywall lock flag: rows captured after the trial ends (no subscription) are hidden until
+        // the user subscribes. Existing rows default to unlocked.
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN locked INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

@@ -9,6 +9,8 @@ object Preferences {
     private const val KEY_APP_LOCK = "app_lock_enabled"
     private const val KEY_USD_INR_RATE = "usd_inr_rate"
     private const val KEY_USD_INR_RATE_SET_AT = "usd_inr_rate_set_at"
+    private const val KEY_TRIAL_START = "trial_start_millis"
+    private const val KEY_SUBSCRIBED = "subscribed"
 
     fun isOnboardingComplete(context: Context): Boolean =
         prefs(context).getBoolean(KEY_ONBOARDING_DONE, false)
@@ -42,6 +44,32 @@ object Preferences {
             putFloat(KEY_USD_INR_RATE, rate.toFloat())
             putLong(KEY_USD_INR_RATE_SET_AT, setAtMillis)
         }
+    }
+
+    /**
+     * Epoch millis the free trial started (first launch). Stamps [now] on first read so the trial
+     * clock begins the moment the app is first opened. Later replaced by Play Billing's trial.
+     */
+    fun ensureTrialStart(context: Context, now: Long): Long {
+        val existing = prefs(context).getLong(KEY_TRIAL_START, 0L)
+        if (existing > 0L) return existing
+        prefs(context).edit { putLong(KEY_TRIAL_START, now) }
+        return now
+    }
+
+    fun getTrialStart(context: Context): Long = prefs(context).getLong(KEY_TRIAL_START, 0L)
+
+    /** Debug/billing hook: move the trial start (e.g. to simulate "day 25" or an expired trial). */
+    fun setTrialStart(context: Context, millis: Long) {
+        prefs(context).edit { putLong(KEY_TRIAL_START, millis) }
+    }
+
+    /** Whether the user holds an active subscription. For now toggled by debug/billing later. */
+    fun isSubscribed(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_SUBSCRIBED, false)
+
+    fun setSubscribed(context: Context, value: Boolean) {
+        prefs(context).edit { putBoolean(KEY_SUBSCRIBED, value) }
     }
 
     private fun prefs(context: Context) =

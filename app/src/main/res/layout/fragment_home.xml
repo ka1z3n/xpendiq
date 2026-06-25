@@ -88,6 +88,47 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Trial status / paywall teaser -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/entitlement_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:stateListAnimator="@animator/card_press"
+            android:visibility="gone"
+            app:cardBackgroundColor="?attr/colorSecondaryContainer"
+            app:strokeWidth="0dp"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/entitlement_banner_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorOnSecondaryContainer"
+                    tools:text="Trial ended" />
+
+                <TextView
+                    android:id="@+id/entitlement_banner_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSecondaryContainer"
+                    tools:text="₹3,200 across 6 transactions locked — subscribe to unlock" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Friendly "to categorize" nudge -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/uncat_card"

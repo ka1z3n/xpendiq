@@ -70,7 +70,10 @@ object TransactionBackup {
     suspend fun export(db: XpendiqDatabase, out: OutputStream): Int = withContext(Dispatchers.IO) {
         val categories = db.categoryDao().getAll()
         val catsById = categories.associateBy { it.id }
-        val txns = db.transactionDao().findAll().sortedByDescending { it.occurredAt }
+        // Locked (paywalled) rows are withheld from export too, so it can't be an unlock loophole.
+        val txns = db.transactionDao().findAll()
+            .filter { !it.locked }
+            .sortedByDescending { it.occurredAt }
         val userRules = TransactionType.values()
             .flatMap { db.merchantRuleDao().findForType(it) }
             .filter { it.source == MerchantRuleSource.USER_LEARNED }
