@@ -99,6 +99,12 @@ class TransactionRepository(
     /** INR-paise spend withheld behind the paywall — the "₹X" half of the teaser. */
     suspend fun lockedSpendInrPaise(): Long = transactionDao.lockedSpendInrPaise()
 
+    /** Visible (unlocked) transaction count — "N transactions tracked" for the trial summary. */
+    suspend fun visibleCount(): Int = transactionDao.countVisible()
+
+    /** Visible (unlocked) INR-paise spend — the "you tracked ₹X" figure for the summary/paywall. */
+    suspend fun visibleSpendInrPaise(): Long = transactionDao.visibleSpendInrPaise()
+
     suspend fun delete(txn: TransactionEntity) {
         transactionDao.deleteById(txn.id)
         deletedSmsHashDao.insert(

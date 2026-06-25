@@ -134,6 +134,23 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE locked = 1")
     suspend fun countLocked(): Int
 
+    /** Visible (unlocked) row count — the "N transactions tracked" figure for the trial summary. */
+    @Query("SELECT COUNT(*) FROM transactions WHERE locked = 0")
+    suspend fun countVisible(): Int
+
+    /** INR-paise spend (DEBIT) across visible rows — the "you tracked ₹X" figure. */
+    @Query(
+        """
+        SELECT COALESCE(SUM(
+            CASE WHEN currency = 'INR' THEN amountPaise
+                 WHEN amountInrPaise IS NOT NULL THEN amountInrPaise
+                 ELSE 0 END
+        ), 0) FROM transactions
+        WHERE locked = 0 AND type = 'DEBIT'
+        """
+    )
+    suspend fun visibleSpendInrPaise(): Long
+
     /** INR-paise spend (DEBIT) total of locked rows — the "₹X withheld" figure for the teaser. */
     @Query(
         """

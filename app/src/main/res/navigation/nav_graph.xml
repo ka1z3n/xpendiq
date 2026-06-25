@@ -49,4 +49,9 @@
         android:id="@+id/reportIssueFragment"
         android:name="com.kaizenll.xpendiq.ui.report.ReportIssueFragment"
         android:label="@string/report_title" />
+
+    <fragment
+        android:id="@+id/paywallFragment"
+        android:name="com.kaizenll.xpendiq.ui.paywall.PaywallFragment"
+        android:label="@string/paywall_title" />
 </navigation>

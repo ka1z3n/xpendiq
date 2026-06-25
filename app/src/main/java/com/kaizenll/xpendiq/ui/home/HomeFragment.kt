@@ -66,6 +66,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             findNavController().navigate(R.id.uncategorizedFragment)
         }
 
+        view.findViewById<MaterialCardView>(R.id.entitlement_banner).setOnClickListener {
+            findNavController().navigate(R.id.paywallFragment)
+        }
+
         view.findViewById<MaterialButton>(R.id.top_categories_see_all).setOnClickListener {
             findNavController().navigate(R.id.insightsFragment)
         }

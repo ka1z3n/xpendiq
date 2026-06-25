@@ -30,6 +30,18 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
+    <style name="PaywallBenefit" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:drawableStart">@drawable/ic_check_circle</item>
+        <item name="android:drawablePadding">12dp</item>
+        <item name="android:drawableTint">?attr/colorPrimary</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
     <style name="SettingsRow" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

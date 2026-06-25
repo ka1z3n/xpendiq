@@ -177,6 +177,31 @@
     </plurals>
     <string name="entitlement_expired_readonly">Read-only. Subscribe to add new transactions.</string>
     <string name="paywall_edit_blocked">Your trial has ended — subscribe to add or edit transactions.</string>
+    <string name="paywall_title">Xpendiq Premium</string>
+    <string name="paywall_subscribe_action">Subscribe</string>
+    <string name="paywall_headline_expired">Your free trial has ended</string>
+    <string name="paywall_headline_trial">You\'re on a free trial</string>
+    <string name="paywall_subhead_trial">%1$d days left of full access.</string>
+    <string name="paywall_subhead_expired">Subscribe to keep tracking and unlock your hidden spends.</string>
+    <plurals name="paywall_summary">
+        <item quantity="one">So far Xpendiq has tracked %1$s across %2$d transaction for you.</item>
+        <item quantity="other">So far Xpendiq has tracked %1$s across %2$d transactions for you.</item>
+    </plurals>
+    <plurals name="paywall_locked_note">
+        <item quantity="one">%1$s across %2$d transaction is locked until you subscribe.</item>
+        <item quantity="other">%1$s across %2$d transactions are locked until you subscribe.</item>
+    </plurals>
+    <string name="paywall_benefit_capture">Automatic tracking from your bank alerts keeps running</string>
+    <string name="paywall_benefit_unlock">Every locked transaction is unlocked instantly</string>
+    <string name="paywall_benefit_edit">Add, edit, categorize and export — full control</string>
+    <string name="paywall_benefit_offline">100% on your device — private and offline</string>
+    <string name="paywall_price">₹199 / year</string>
+    <string name="paywall_price_note">Less than ₹17 a month. Cancel anytime.</string>
+    <string name="paywall_cta">Subscribe — ₹199/year</string>
+    <string name="paywall_not_now">Not now</string>
+    <string name="paywall_subscribed_toast">Subscribed — welcome to Premium!</string>
+    <string name="paywall_billing_soon">Subscriptions go live at launch (billing coming soon).</string>
+    <string name="paywall_already_subscribed">You\'re on Premium — full access.</string>
 
     <string name="settings_section_debug">Developer</string>
     <string name="settings_debug_entitlement">Simulate entitlement</string>
