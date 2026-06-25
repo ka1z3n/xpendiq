@@ -19,4 +19,12 @@
     <string name="onb_perm_b1">📲 Only Google Messages &amp; Samsung Messages are watched</string>
     <string name="onb_perm_b2">🔕 OTPs and promo alerts are filtered out</string>
     <string name="onb_perm_b3">⚙️ You can revoke this from Settings any time</string>
+
+    <!--
+      Prominent disclosure shown before requesting notification access (Play's "Prominent
+      Disclosure & Consent" requirement). States what is accessed, why, that it is on-device
+      only and never transmitted, and requires an affirmative tap to proceed.
+    -->
+    <string name="onb_notif_title">Allow Xpendiq to read transaction alerts</string>
+    <string name="onb_notif_msg">To record your spending automatically, Xpendiq reads notifications from your messaging apps — Google Messages and Samsung Messages — to find bank transaction alerts like UPI and card payments.\n\nThis happens only on your device. Your messages and notifications are never uploaded, shared, or sent anywhere. Only bank transaction alerts are saved — OTPs and promotional messages are ignored.\n\nYou can turn this off any time in Settings.</string>
 </resources>

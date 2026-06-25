@@ -106,6 +106,14 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             findNavController().navigate(R.id.reportIssueFragment)
         }
 
+        view.findViewById<View>(R.id.source_row).setOnClickListener {
+            openUrl(getString(R.string.url_source))
+        }
+
+        view.findViewById<View>(R.id.privacy_row).setOnClickListener {
+            openUrl(getString(R.string.url_privacy))
+        }
+
         view.findViewById<View>(R.id.export_row).setOnClickListener {
             exportLauncher.launch("xpendiq-backup-${LocalDate.now()}.csv")
         }
@@ -370,5 +378,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             data = Uri.fromParts("package", requireContext().packageName, null)
         }
         startActivity(intent)
+    }
+
+    /** Open an external link (source repo / privacy policy); no-op if no browser can handle it. */
+    private fun openUrl(url: String) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 }

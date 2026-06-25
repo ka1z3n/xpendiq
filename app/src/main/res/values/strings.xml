@@ -152,6 +152,12 @@
     <string name="settings_section_help">Help</string>
     <string name="settings_report">Report an issue</string>
     <string name="settings_report_desc">Bugs or a missed transaction</string>
+    <string name="settings_source">View source code</string>
+    <string name="settings_source_desc">Xpendiq is public on GitHub — inspect it yourself</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_privacy_desc">What the app accesses, and why</string>
+    <string name="url_source">https://github.com/ka1z3n/xpendiq</string>
+    <string name="url_privacy">https://github.com/ka1z3n/xpendiq/blob/main/PRIVACY.md</string>
 
     <string name="report_title">Report an issue</string>
     <string name="report_intro">Found a bug, or a transaction Xpendiq missed? Tell us below.</string>
