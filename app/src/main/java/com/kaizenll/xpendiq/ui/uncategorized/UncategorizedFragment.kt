@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.TransactionType
+import com.kaizenll.xpendiq.entitlement.entitlement
+import com.kaizenll.xpendiq.entitlement.requireEntitledToEdit
 import com.kaizenll.xpendiq.util.Motion
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
@@ -59,7 +61,10 @@ class UncategorizedFragment : Fragment(R.layout.fragment_uncategorized) {
 
         adapter = UncategorizedAdapter(
             onClick = { txn ->
-                CategoryPickerSheet.newInstance(txn.id).show(parentFragmentManager, "category_picker")
+                // Categorizing is an edit — gated when the trial has ended.
+                if (requireEntitledToEdit(requireView())) {
+                    CategoryPickerSheet.newInstance(txn.id).show(parentFragmentManager, "category_picker")
+                }
             },
             onSelectionChanged = ::updateToolbar,
         )
@@ -134,7 +139,8 @@ class UncategorizedFragment : Fragment(R.layout.fragment_uncategorized) {
      * there is nothing to suggest. Rows are inflated fresh each time — there are at most three.
      */
     private fun renderSuggestions() {
-        val show = latestSuggestions.isNotEmpty() && !adapter.selectionMode
+        // Suggestions apply a category (an edit), so they're hidden in the read-only state too.
+        val show = latestSuggestions.isNotEmpty() && !adapter.selectionMode && entitlement.isEntitled()
         suggestionsBlock.visibility = if (show) View.VISIBLE else View.GONE
         suggestionsContainer.removeAllViews()
         if (!show) return
@@ -231,13 +237,13 @@ class UncategorizedFragment : Fragment(R.layout.fragment_uncategorized) {
     private fun onSelectionMenuItem(item: MenuItem): Boolean = when (item.itemId) {
         R.id.action_bulk_categorize -> {
             val ids = adapter.selectedIds()
-            if (ids.isNotEmpty()) {
+            if (ids.isNotEmpty() && requireEntitledToEdit(requireView())) {
                 CategoryPickerSheet.newInstanceBulk(ids).show(parentFragmentManager, "category_picker")
             }
             true
         }
         R.id.action_bulk_delete -> {
-            confirmBulkDelete(adapter.selectedIds())
+            if (requireEntitledToEdit(requireView())) confirmBulkDelete(adapter.selectedIds())
             true
         }
         else -> false

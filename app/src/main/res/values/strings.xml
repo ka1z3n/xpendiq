@@ -176,6 +176,7 @@
         <item quantity="other">%1$s across %2$d transactions locked — subscribe to unlock</item>
     </plurals>
     <string name="entitlement_expired_readonly">Read-only. Subscribe to add new transactions.</string>
+    <string name="paywall_edit_blocked">Your trial has ended — subscribe to add or edit transactions.</string>
 
     <string name="settings_section_debug">Developer</string>
     <string name="settings_debug_entitlement">Simulate entitlement</string>

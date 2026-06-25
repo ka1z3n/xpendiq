@@ -13,6 +13,7 @@ import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.XpendiqApplication
 import com.kaizenll.xpendiq.data.entity.PaymentMode
 import com.kaizenll.xpendiq.data.entity.TransactionEntity
+import com.kaizenll.xpendiq.entitlement.entitlement
 import com.kaizenll.xpendiq.util.CurrencyFormat
 import com.kaizenll.xpendiq.util.DateFormat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -87,18 +88,26 @@ class TransactionDetailSheet : BottomSheetDialogFragment() {
             }
         }
 
-        view.findViewById<MaterialButton>(R.id.delete_btn).setOnClickListener {
-            confirmDelete(txn)
-        }
-
-        view.findViewById<MaterialButton>(R.id.edit_btn).setOnClickListener {
-            val controller = Navigation.findNavController(requireActivity(), R.id.nav_host)
-            controller.navigate(
-                R.id.editTransactionFragment,
-                bundleOf("txnId" to txn.id),
-                EDIT_NAV_OPTIONS,
-            )
-            dismiss()
+        val deleteBtn = view.findViewById<MaterialButton>(R.id.delete_btn)
+        val editBtn = view.findViewById<MaterialButton>(R.id.edit_btn)
+        // After the trial ends the app is read-only: editing and deleting are hidden until the
+        // user subscribes (the row stays fully viewable).
+        if (entitlement.isEntitled()) {
+            deleteBtn.visibility = View.VISIBLE
+            editBtn.visibility = View.VISIBLE
+            deleteBtn.setOnClickListener { confirmDelete(txn) }
+            editBtn.setOnClickListener {
+                val controller = Navigation.findNavController(requireActivity(), R.id.nav_host)
+                controller.navigate(
+                    R.id.editTransactionFragment,
+                    bundleOf("txnId" to txn.id),
+                    EDIT_NAV_OPTIONS,
+                )
+                dismiss()
+            }
+        } else {
+            deleteBtn.visibility = View.GONE
+            editBtn.visibility = View.GONE
         }
     }
 

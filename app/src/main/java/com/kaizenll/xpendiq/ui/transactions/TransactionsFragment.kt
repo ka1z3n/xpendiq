@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.TransactionType
+import com.kaizenll.xpendiq.entitlement.entitlement
 import android.widget.TextView
 import com.kaizenll.xpendiq.util.Motion
 import com.google.android.material.button.MaterialButton
@@ -48,8 +49,17 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
             TransactionFilterSheet().show(childFragmentManager, "txn_filter")
         }
 
-        view.findViewById<FloatingActionButton>(R.id.add_fab).setOnClickListener {
+        val addFab = view.findViewById<FloatingActionButton>(R.id.add_fab)
+        addFab.setOnClickListener {
             findNavController().navigate(R.id.editTransactionFragment, null, EDIT_NAV_OPTIONS)
+        }
+        // Manual add is an edit action — hidden once the trial ends (read-only until subscribed).
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                entitlement.state.collect { state ->
+                    addFab.visibility = if (state.isEntitled) View.VISIBLE else View.GONE
+                }
+            }
         }
 
         val staggerController =
@@ -97,6 +107,12 @@ class TransactionsFragment : Fragment(R.layout.fragment_transactions) {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Recompute entitlement so the FAB reflects a trial that lapsed while the app was away.
+        entitlement.refresh()
     }
 
     private fun setSegmentSelected(tv: TextView, on: Boolean) {

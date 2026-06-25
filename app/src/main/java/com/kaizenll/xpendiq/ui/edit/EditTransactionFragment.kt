@@ -20,6 +20,7 @@ import com.kaizenll.xpendiq.R
 import com.kaizenll.xpendiq.data.entity.Category
 import com.kaizenll.xpendiq.data.entity.PaymentMode
 import com.kaizenll.xpendiq.data.entity.TransactionType
+import com.kaizenll.xpendiq.entitlement.requireEntitledToEdit
 import com.kaizenll.xpendiq.ui.edit.EditTransactionViewModel.SaveResult
 import com.kaizenll.xpendiq.ui.edit.EditTransactionViewModel.UiState
 import com.google.android.material.appbar.MaterialToolbar
@@ -82,7 +83,9 @@ class EditTransactionFragment : Fragment(R.layout.fragment_edit_transaction) {
         val h = Holder(view).also { binding = it }
 
         h.toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
-        h.saveBtn.setOnClickListener { viewModel.save() }
+        // Defensive: this screen is unreachable once read-only (FAB + edit are hidden), but guard
+        // the save too so no path can write while the trial is expired.
+        h.saveBtn.setOnClickListener { if (requireEntitledToEdit(h.saveBtn)) viewModel.save() }
 
         h.amount.addTextChangedListener(simpleWatcher { if (!suppressTextWatchers) viewModel.setAmount(it) })
         h.merchant.addTextChangedListener(simpleWatcher { if (!suppressTextWatchers) viewModel.setMerchant(it) })
