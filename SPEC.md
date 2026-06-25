@@ -105,12 +105,15 @@ Ordered extractor chain (highest precedence first):
    ```
    → DEBIT/CREDIT, mode=AUTO_DEBIT for debits, mode=NETBANKING for credits. PAYER captured as merchant.
 
-7. **Mutual fund / SIP purchase** — INVESTMENT:
+7. **Mutual fund / SIP purchase confirmation** — deliberately **not ingested**:
    ```
    Your SIP Purchase in Folio <folio> under <SCHEME> for Rs. <amt> has been processed at the NAV of <nav> for <units> units and <date>
    Dear Investor, Purchase transaction in Folio No. <folio> in Scheme : <SCHEME> for date <date> for amount of INR <amt> at NAV of <nav>...
    ```
-   → INVESTMENT. Scheme name captured as merchant. `paymentMode = AUTO_DEBIT` (SIP).
+   → dropped. A SIP fires two SMS for the same money — this fund-house confirmation and the bank's
+   NACH/account debit (case 6). The bank debit is the real money movement, so it is the single row
+   we keep; the confirmation would only double-count. The kept NACH debit is a normal spend; the
+   user re-categorizes it into an investment category if they want it counted as such.
 
 8. **ICICI card spend** — Indian credit-card spend with INR or USD amount:
    ```
@@ -197,7 +200,7 @@ Caveats:
   - HDFC credit: `Credit Alert! Rs.60000.00 credited to HDFC Bank A/c XX1234 on 19-11-25 from VPA john.doe@oksbi`
   - SBI Card spend: `Rs.1,268.50 spent on your SBI Credit Card ending 9999 at ATRIACONVERGENCETECH on 05/12/25`
   - ICICI CC payment: `Payment of Rs 16,002.17 has been received on your ICICI Bank Credit Card XX5151 through Bharat Bill Payment System on 23-MAY-25`
-  - SIP: `Your SIP Purchase in Folio 12345678/90 under HDFC BSE Sensex Index Fund-DP Growth for Rs. 19,999.00 has been processed at the NAV of 774.657`
+  - SIP confirmation (ignore — bank NACH debit is kept instead): `Your SIP Purchase in Folio 12345678/90 under HDFC BSE Sensex Index Fund-DP Growth for Rs. 19,999.00 has been processed at the NAV of 774.657`
   - Scheduled (ignore): `Dear UPI User, UPI AutoPay for AutoPay Bharat Connect Electricity Bill Payment debit of Rs.611.00 is scheduled on .05/02/26`
   - Collect-request (ignore): `MakeMyTrip has requested money through Google-pay. On approval, Rs 3450.00 will be debited from your Bank Account-ICICI Bank.`
   - Balance report (ignore): `GROWW INVEST at EOD 27/02/2026 reported your Fund bal Rs 378.900 & Securities bal 0`

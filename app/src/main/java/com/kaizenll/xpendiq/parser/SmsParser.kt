@@ -7,7 +7,6 @@ import com.kaizenll.xpendiq.parser.extractor.HdfcUpiDebitExtractor
 import com.kaizenll.xpendiq.parser.extractor.IciciCardSpendExtractor
 import com.kaizenll.xpendiq.parser.extractor.IciciCcPaymentExtractor
 import com.kaizenll.xpendiq.parser.extractor.IciciCcReversalExtractor
-import com.kaizenll.xpendiq.parser.extractor.MutualFundSipExtractor
 import com.kaizenll.xpendiq.parser.extractor.PayUExtractor
 import com.kaizenll.xpendiq.parser.extractor.SbiCardSpendExtractor
 import com.kaizenll.xpendiq.parser.extractor.SbiNachExtractor
@@ -45,7 +44,6 @@ class SmsParser(
             SbiUpiDebitExtractor,
             SbiNachExtractor,
             SbiNeftCreditExtractor,
-            MutualFundSipExtractor,
             WalletDebitExtractor,
             PayUExtractor,
             FastagTollExtractor,

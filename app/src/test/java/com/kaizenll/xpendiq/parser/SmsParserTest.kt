@@ -66,21 +66,17 @@ class SmsParserTest {
         assertEquals(IciciCcPaymentExtractor.MERCHANT_MARKER, p.merchantNormalized)
     }
 
-    @Test fun `SIP purchase is INVESTMENT`() {
+    // A SIP fires two SMS — the fund house's purchase confirmation *and* the bank's NACH/account
+    // debit for the same money. We keep only the bank debit (the real money movement), so the
+    // fund-purchase confirmations are deliberately not ingested and must not become a second row.
+    @Test fun `HDFC SIP purchase confirmation is dropped`() {
         val body = "Your SIP Purchase in Folio 12345678/90 under HDFC BSE Sensex Index Fund-DP Growth for Rs. 19,999.00 has been processed at the NAV of 774.657 for 25.817 units and 23-Jun-2025."
-        val p = parser.parse("AD-HDFCMF-S", body, now)
-        assertNotNull(p)
-        assertEquals(TransactionType.INVESTMENT, p!!.type)
-        assertEquals(1_999_900L, p.amountPaise)
-        assertTrue(p.merchantRaw!!.contains("HDFC BSE Sensex"))
+        assertNull(parser.parse("AD-HDFCMF-S", body, now))
     }
 
-    @Test fun `SBI MF purchase is INVESTMENT`() {
+    @Test fun `SBI MF purchase confirmation is dropped`() {
         val body = "Dear Investor, Purchase transaction in Folio No. 87654321 in Scheme : SBI Small Cap Fund Dir Growth for date 24-Apr-2026 for amount of INR 24,998.75 at NAV of 191.0425 is processed for number of units 130.854 - SBIMF"
-        val p = parser.parse("AD-SBIMFD-S", body, now)
-        assertNotNull(p)
-        assertEquals(TransactionType.INVESTMENT, p!!.type)
-        assertEquals(2_499_875L, p.amountPaise)
+        assertNull(parser.parse("AD-SBIMFD-S", body, now))
     }
 
     @Test fun `AutoPay scheduled is dropped`() {
