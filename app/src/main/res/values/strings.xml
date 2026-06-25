@@ -203,7 +203,15 @@
     <string name="paywall_billing_soon">Subscriptions go live at launch (billing coming soon).</string>
     <string name="paywall_already_subscribed">You\'re on Premium — full access.</string>
 
+    <string name="trial_reminder_channel">Trial reminders</string>
+    <plurals name="trial_reminder_title">
+        <item quantity="one">%d day left in your Xpendiq trial</item>
+        <item quantity="other">%d days left in your Xpendiq trial</item>
+    </plurals>
+    <string name="trial_reminder_text">You\'ve tracked %1$s so far. Subscribe to keep tracking when your trial ends.</string>
+
     <string name="settings_section_debug">Developer</string>
+    <string name="settings_debug_fire_reminder">Fire trial reminder now</string>
     <string name="settings_debug_entitlement">Simulate entitlement</string>
     <string name="settings_source">View source code</string>
     <string name="settings_source_desc">Xpendiq is public on GitHub — inspect it yourself</string>

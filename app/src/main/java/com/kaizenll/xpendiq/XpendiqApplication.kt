@@ -69,5 +69,8 @@ class XpendiqApplication : Application() {
                 if (state.isEntitled && repository.lockedCount() > 0) repository.unlockAll()
             }
         }
+        // Nudge the user ~5 days before the trial ends (no-op once subscribed / already past day 25).
+        com.kaizenll.xpendiq.work.TrialReminder.ensureChannel(this)
+        com.kaizenll.xpendiq.work.TrialReminder.schedule(this)
     }
 }

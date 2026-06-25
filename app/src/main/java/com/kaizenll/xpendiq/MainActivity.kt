@@ -13,6 +13,7 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import androidx.navigation.ui.setupWithNavController
@@ -25,6 +26,8 @@ import com.google.android.material.button.MaterialButton
 class MainActivity : AppCompatActivity() {
 
     private val lockAuthenticators = BIOMETRIC_WEAK or DEVICE_CREDENTIAL
+
+    private lateinit var navController: NavController
 
     // Auto-show the prompt once per lock. After a cancel we keep it true so onResume doesn't loop;
     // a real background (onStop without an auth in progress) re-arms it.
@@ -66,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val navHost = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val navController = navHost.navController
+        navController = navHost.navController
 
         // setupWithNavController keeps the selected tab highlight in sync with the destination.
         bottomNav.setupWithNavController(navController)
@@ -94,6 +97,23 @@ class MainActivity : AppCompatActivity() {
 
         // Cover immediately on first creation so content never flashes before the prompt.
         if (shouldLock()) findViewById<View>(R.id.lock_overlay).visibility = View.VISIBLE
+
+        maybeOpenPaywall(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        maybeOpenPaywall(intent)
+    }
+
+    /** Opens the paywall when launched from the trial-reminder notification. */
+    private fun maybeOpenPaywall(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_OPEN_PAYWALL, false) != true) return
+        intent.removeExtra(EXTRA_OPEN_PAYWALL)
+        if (::navController.isInitialized) {
+            runCatching { navController.navigate(R.id.paywallFragment) }
+        }
     }
 
     override fun onResume() {
@@ -157,5 +177,10 @@ class MainActivity : AppCompatActivity() {
     private fun unlock() {
         AppLock.isUnlocked = true
         findViewById<View>(R.id.lock_overlay).visibility = View.GONE
+    }
+
+    companion object {
+        /** Boolean intent extra: launch straight into the paywall (from the trial reminder). */
+        const val EXTRA_OPEN_PAYWALL = "open_paywall"
     }
 }

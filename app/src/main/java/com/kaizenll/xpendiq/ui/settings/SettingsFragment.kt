@@ -472,21 +472,27 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
             "Expired",
             "Subscribed",
             "Reset (fresh trial)",
+            getString(R.string.settings_debug_fire_reminder),
         )
         AlertDialog.Builder(ctx)
             .setTitle(R.string.settings_debug_entitlement)
             .setItems(options) { _, which ->
-                when (which) {
-                    0 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
-                    1 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 25 * day) }
-                    2 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 29 * day) }
-                    3 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 31 * day) }
-                    4 -> Preferences.setSubscribed(ctx, true)
-                    5 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
+                if (which <= 5) {
+                    when (which) {
+                        0 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
+                        1 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 25 * day) }
+                        2 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 29 * day) }
+                        3 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now - 31 * day) }
+                        4 -> Preferences.setSubscribed(ctx, true)
+                        5 -> { Preferences.setSubscribed(ctx, false); Preferences.setTrialStart(ctx, now) }
+                    }
+                    entitlementApp().entitlement.refresh()
+                    refreshDebugEntitlement()
+                    view?.let { Snackbar.make(it, "Entitlement → ${options[which]}", Snackbar.LENGTH_SHORT).show() }
+                } else {
+                    com.kaizenll.xpendiq.work.TrialReminder.fireNow(ctx)
+                    view?.let { Snackbar.make(it, "Trial reminder fired", Snackbar.LENGTH_SHORT).show() }
                 }
-                entitlementApp().entitlement.refresh()
-                refreshDebugEntitlement()
-                view?.let { Snackbar.make(it, "Entitlement → ${options[which]}", Snackbar.LENGTH_SHORT).show() }
             }
             .show()
     }
