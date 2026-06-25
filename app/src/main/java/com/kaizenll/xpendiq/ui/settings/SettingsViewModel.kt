@@ -25,14 +25,26 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     /** Current manual USD→INR rate, or null when unset. */
     fun usdInrRate(): Double? = Preferences.getUsdInrRate(getApplication())
 
+    /** Epoch millis the rate was last set (0 if never), for the staleness reminder. */
+    fun usdInrRateSetAt(): Long = Preferences.getUsdInrRateSetAt(getApplication())
+
+    /** How many foreign (USD) transactions exist — gates the "update past?" prompt and reminder. */
+    suspend fun foreignTxnCount(): Int = database.transactionDao().countByCurrency("USD")
+
     /**
-     * Persist a new USD→INR rate and re-freeze the INR-equivalent on every existing USD row, so
-     * past foreign transactions immediately fold into totals at the new rate.
+     * Persist a new USD→INR rate, stamping the time so the UI can flag a stale rate later. New
+     * captures always freeze at the latest rate. When [applyToPast] is true, also re-freezes every
+     * existing USD row at this rate (a correction) and returns how many were updated; otherwise
+     * past rows keep their captured values — the rate simply moved — and 0 is returned.
      */
-    suspend fun setUsdInrRate(rate: Double): Int {
-        Preferences.setUsdInrRate(getApplication(), rate)
-        return database.transactionDao()
-            .recomputeInrForCurrency("USD", rate, System.currentTimeMillis())
+    suspend fun setUsdInrRate(rate: Double, applyToPast: Boolean): Int {
+        val now = System.currentTimeMillis()
+        Preferences.setUsdInrRate(getApplication(), rate, now)
+        return if (applyToPast) {
+            database.transactionDao().recomputeInrForCurrency("USD", rate, now)
+        } else {
+            0
+        }
     }
 
     /** Write the full transaction history to [out] as CSV; returns the row count. */

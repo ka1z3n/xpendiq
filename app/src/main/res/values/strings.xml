@@ -143,9 +143,22 @@
     <string name="settings_fx_unset">Set a USD → INR rate to include foreign spends</string>
     <string name="settings_fx_value">1 USD = ₹%1$s</string>
     <string name="settings_fx_dialog_title">USD → INR rate</string>
-    <string name="settings_fx_dialog_msg">Used to convert USD transactions into your totals. Applied to past and future USD spends.</string>
+    <string name="settings_fx_dialog_msg">Used to convert USD transactions into your totals. New spends use this rate; you choose whether to also update past ones.</string>
     <string name="settings_fx_dialog_hint">Rupees per 1 USD (e.g. 83)</string>
     <string name="settings_fx_saved">Converted %1$d USD transaction(s)</string>
+    <string name="settings_fx_saved_future">New rate saved for future spends</string>
+    <string name="settings_fx_apply_title">Update past transactions?</string>
+    <string name="settings_fx_apply_msg">You have %1$d foreign transaction(s) saved at the previous rate. Update them to 1 USD = ₹%2$s too, or keep their existing values?</string>
+    <string name="settings_fx_apply_keep">Keep existing</string>
+    <string name="settings_fx_apply_all">Update all</string>
+    <plurals name="settings_fx_age">
+        <item quantity="one">set %d day ago</item>
+        <item quantity="other">set %d days ago</item>
+    </plurals>
+    <plurals name="settings_fx_stale">
+        <item quantity="one">%d day old — tap to review</item>
+        <item quantity="other">%d days old — tap to review</item>
+    </plurals>
     <string name="fx_approx">≈ %1$s</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_data">Data</string>

@@ -8,6 +8,7 @@ object Preferences {
     private const val KEY_ONBOARDING_DONE = "onboarding_done"
     private const val KEY_APP_LOCK = "app_lock_enabled"
     private const val KEY_USD_INR_RATE = "usd_inr_rate"
+    private const val KEY_USD_INR_RATE_SET_AT = "usd_inr_rate_set_at"
 
     fun isOnboardingComplete(context: Context): Boolean =
         prefs(context).getBoolean(KEY_ONBOARDING_DONE, false)
@@ -31,8 +32,16 @@ object Preferences {
     fun getUsdInrRate(context: Context): Double? =
         prefs(context).getFloat(KEY_USD_INR_RATE, 0f).takeIf { it > 0f }?.toDouble()
 
-    fun setUsdInrRate(context: Context, rate: Double) {
-        prefs(context).edit { putFloat(KEY_USD_INR_RATE, rate.toFloat()) }
+    /** Epoch millis the rate was last set, or 0 if never (or set before this was tracked). */
+    fun getUsdInrRateSetAt(context: Context): Long =
+        prefs(context).getLong(KEY_USD_INR_RATE_SET_AT, 0L)
+
+    /** Stores the rate and stamps [setAtMillis] so the UI can flag a stale rate later. */
+    fun setUsdInrRate(context: Context, rate: Double, setAtMillis: Long) {
+        prefs(context).edit {
+            putFloat(KEY_USD_INR_RATE, rate.toFloat())
+            putLong(KEY_USD_INR_RATE_SET_AT, setAtMillis)
+        }
     }
 
     private fun prefs(context: Context) =

@@ -17,7 +17,7 @@ The app runs fully on-device. No transactional data leaves the phone.
 - **No budgets, no over-spend alerts, no category caps.** Xpendiq reports what happened; it does not judge.
 - No OCR of paper receipts, no email parsing.
 - No investment portfolio valuation / P&L — Xpendiq only logs that an investment outflow happened.
-- INR is the primary currency. USD is supported for foreign-currency subscriptions (rows store the original amount + ISO code), but multi-currency totals are not aggregated yet — non-INR rows are excluded from "Spent / Received / Invested this month".
+- INR is the primary currency. USD is supported for foreign-currency subscriptions (rows store the original amount + ISO code). They fold into totals only via a **manual** USD→INR rate the user sets in Settings (no live FX feed — the app stays fully offline); until a rate is set, foreign rows stay visible but out of the INR totals. See §7.5.
 
 ## 4. Target User
 Indian smartphone user whose bank/card issuer sends transactional SMS in English. Primarily uses UPI plus one or two cards.
@@ -171,11 +171,20 @@ Implementation note: each extractor is a small class with `match(sender, body, r
 - A "Payment received on your Credit Card" is a CREDIT to the card (you paying off the bill from your bank), categorized as **Transfers (CC payment)** and **hidden** from the Credits list and "Received this month" totals (it's an internal transfer, not income).
 - **Cross-type re-categorization is allowed**: from the Uncategorized inbox, the user can move a DEBIT row into the Investment category. The destination category's `appliesToType` becomes the row's new `type`. The Repository's `ingestSms` honours this too — if a learned `MerchantRule` points at a category of a different type, the inserted row gets retyped automatically.
 
-### 7.5 Multi-currency (USD)
+### 7.5 Multi-currency (USD) and manual FX conversion
 - Each transaction stores an ISO-4217 `currency` code on the Room row (default `"INR"`).
 - `ParseUtil.findAmountWithCurrency` recognises `Rs`, `INR`, `₹`, `USD`, `$` and returns both amount-in-minor-units and the currency code.
 - All extractors carry currency through. `CurrencyFormat.format(paise, currency)` renders the right symbol (₹ or $) on rows, the detail sheet, and the Edit screen's amount prefix.
-- Monthly totals (Home / Insights) query `WHERE currency = 'INR'` — USD rows are visible but never aggregated into the INR totals, because we have no FX rates and don't want misleading sums.
+
+**Conversion model (fully offline, manual rate).** The app has no live FX feed. The user sets a manual USD→INR rate in **Settings → Foreign currency rate** (`Preferences.usd_inr_rate`, plus a `usd_inr_rate_set_at` timestamp).
+- A foreign row stores `amountInrPaise` — its INR-equivalent **frozen at capture** using the rate current at that time (`Fx.toInrPaise`; null for INR rows and for foreign rows captured before any rate was set).
+- Totals sum `amountPaise` for INR rows and the frozen `amountInrPaise` for foreign rows (`CASE WHEN currency='INR' … WHEN amountInrPaise IS NOT NULL … ELSE 0`). Foreign rows with no conversion yet contribute 0, so they stay out of totals until a rate exists.
+- Rows show an `≈ ₹…` subtext (`fx_approx`) under the original foreign amount.
+
+**Changing the rate is history-aware.** Because the dollar genuinely drifts over time, updating the rate does **not** silently restate the past:
+- **First time a rate is set** → every existing (so-far-unconverted) USD row is converted at that rate.
+- **Changing an existing rate** (foreign rows exist) → the user is asked: **Keep existing** (default — past rows stay frozen at their captured rate; only new captures use the new rate) or **Update all** (re-freeze every USD row at the new rate, for fixing a mistyped rate). Implemented as `setUsdInrRate(rate, applyToPast)`; `applyToPast=true` runs `recomputeInrForCurrency`.
+- **Staleness reminder:** the FX row subtitle shows the rate's age ("set N days ago"); once older than 60 days *and* the user actually has foreign rows, it nudges "N days old — tap to review". New captures freeze at whatever the stored rate is, so keeping it fresh is what makes per-transaction history accurate.
 
 ### 7.6 RCS support via NotificationListener
 Some banks (notably **SBI Card**) deliver "Rs.X spent..." messages as **RCS chatbot** messages on Google Messages, not as SMS. RCS messages don't reach the `SMS_RECEIVED` broadcast or `content://sms/inbox`. Google Messages stores them in its own private content provider that third-party apps can't query.

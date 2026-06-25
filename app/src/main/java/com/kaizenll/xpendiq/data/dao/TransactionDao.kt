@@ -119,6 +119,9 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId")
     suspend fun countByCategory(categoryId: Long): Int
 
+    @Query("SELECT COUNT(*) FROM transactions WHERE currency = :currency")
+    suspend fun countByCurrency(currency: String): Int
+
     /**
      * Used by seed migration to re-route existing transactions to a new/changed category
      * when their merchantNormalized substring-matches a seed rule. Preserves user edits.

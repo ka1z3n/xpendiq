@@ -152,10 +152,25 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private fun refreshFxRate() {
         val subtitle = view?.findViewById<TextView>(R.id.fx_subtitle) ?: return
         val rate = viewModel.usdInrRate()
-        subtitle.text = if (rate == null) {
-            getString(R.string.settings_fx_unset)
-        } else {
-            getString(R.string.settings_fx_value, formatRate(rate))
+        if (rate == null) {
+            subtitle.text = getString(R.string.settings_fx_unset)
+            return
+        }
+        val base = getString(R.string.settings_fx_value, formatRate(rate))
+        subtitle.text = base // immediate; the age suffix (if any) lands once the count loads
+        val setAt = viewModel.usdInrRateSetAt()
+        if (setAt <= 0L) return
+        val days = ((System.currentTimeMillis() - setAt) / DAY_MILLIS).toInt().coerceAtLeast(0)
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Only nag users who actually have foreign spends — otherwise the rate's age is noise.
+            if (viewModel.foreignTxnCount() == 0) return@launch
+            val tv = view?.findViewById<TextView>(R.id.fx_subtitle) ?: return@launch
+            val suffix = if (days >= FX_STALE_DAYS) {
+                resources.getQuantityString(R.plurals.settings_fx_stale, days, days)
+            } else {
+                resources.getQuantityString(R.plurals.settings_fx_age, days, days)
+            }
+            tv.text = "$base · $suffix"
         }
     }
 
@@ -188,15 +203,46 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                     Snackbar.make(requireView(), R.string.settings_fx_dialog_hint, Snackbar.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val count = viewModel.setUsdInrRate(rate)
-                    refreshFxRate()
-                    view?.let {
-                        Snackbar.make(it, getString(R.string.settings_fx_saved, count), Snackbar.LENGTH_LONG).show()
-                    }
-                }
+                onFxRateEntered(rate, previous = current)
             }
             .show()
+    }
+
+    private fun onFxRateEntered(rate: Double, previous: Double?) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val foreignCount = viewModel.foreignTxnCount()
+            // Changing an existing rate with past foreign rows: ask whether to restate history
+            // (a rate fix) or leave it frozen (the rate simply moved). First-ever rate has nothing
+            // frozen yet, and no-change / no-foreign cases have nothing to restate — just save.
+            if (previous != null && rate != previous && foreignCount > 0) {
+                showApplyToPastDialog(rate, foreignCount)
+            } else {
+                saveFxRate(rate, applyToPast = previous == null)
+            }
+        }
+    }
+
+    private fun showApplyToPastDialog(rate: Double, foreignCount: Int) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.settings_fx_apply_title)
+            .setMessage(getString(R.string.settings_fx_apply_msg, foreignCount, formatRate(rate)))
+            // "Keep existing" is the safe default (positive), so a rate that simply moved doesn't
+            // silently rewrite history; "Update all" is the correction path.
+            .setPositiveButton(R.string.settings_fx_apply_keep) { _, _ -> saveFxRate(rate, applyToPast = false) }
+            .setNegativeButton(R.string.settings_fx_apply_all) { _, _ -> saveFxRate(rate, applyToPast = true) }
+            .show()
+    }
+
+    private fun saveFxRate(rate: Double, applyToPast: Boolean) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val count = viewModel.setUsdInrRate(rate, applyToPast)
+            refreshFxRate()
+            view?.let {
+                val msg = if (count > 0) getString(R.string.settings_fx_saved, count)
+                else getString(R.string.settings_fx_saved_future)
+                Snackbar.make(it, msg, Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun refreshPermissionStatus() {
@@ -383,5 +429,11 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     /** Open an external link (source repo / privacy policy); no-op if no browser can handle it. */
     private fun openUrl(url: String) {
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
+
+    companion object {
+        private const val DAY_MILLIS = 24L * 60 * 60 * 1000
+        // Rates older than this get a "tap to review" nudge (USD/INR drifts a few % over ~2 months).
+        private const val FX_STALE_DAYS = 60
     }
 }
