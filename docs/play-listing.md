@@ -52,6 +52,8 @@ When your bank notifies you of a UPI payment, card spend, or credit, Xpendiq rea
 Xpendiq needs Notification access to read your bank's transaction alerts. This is the app's core feature: it is used only to detect bank transaction messages, and everything is processed on your device. You can turn it off at any time in Settings.
 
 This version uses no SMS permissions.
+
+Xpendiq is free to try for 30 days — no card, no sign-up. After that, an optional subscription (₹199/year) keeps automatic tracking of new transactions unlocked; everything you've already tracked stays yours.
 ```
 
 ---
@@ -61,4 +63,9 @@ This version uses no SMS permissions.
 - **Privacy policy URL:** https://github.com/ka1z3n/xpendiq/blob/main/PRIVACY.md
 - **Notification access:** when prompted, declare it as core functionality; the in-app prominent-disclosure screen already explains it before requesting.
 - **Data safety:** "No data collected/shared" — all processing is on-device; nothing is transmitted.
-- **Category:** Finance. **Ads:** No. **In-app purchases:** No.
+- **Category:** Finance. **Ads:** No. **In-app purchases:** Yes — one auto-renewing subscription,
+  product id `xpendiq_pro` (must match `PlayBillingGateway.PRODUCT_ID`), ₹199/year, India.
+- **Trial:** the 30-day trial is a local clock in the app, *not* a Play free-trial offer. Do not add a
+  free-trial offer to the base plan, or users get 30 days twice.
+- **Billing is play-flavor only.** The `full` (off-Play, SMS) build sets `BILLING_ENABLED=false` and is
+  entitled forever — it can't take payment when sideloaded.

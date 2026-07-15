@@ -66,12 +66,16 @@ android {
         create("full") {
             dimension = "dist"
             buildConfigField("boolean", "SMS_ENABLED", "true")
+            // Off-Play build: no Play Billing (can't take payment when sideloaded), so it's free.
+            buildConfigField("boolean", "BILLING_ENABLED", "false")
             // Distinguish the two builds in the About card / issue reports.
             versionNameSuffix = "-full"
         }
         create("play") {
             dimension = "dist"
             buildConfigField("boolean", "SMS_ENABLED", "false")
+            // Play Store build: real Play Billing behind the entitlement seam.
+            buildConfigField("boolean", "BILLING_ENABLED", "true")
             // No suffix: Play users see a clean version (e.g. "1.0").
         }
     }
@@ -113,6 +117,9 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.biometric)
+
+    // Play Billing lives only in the play flavor — full stays free and can't take payment.
+    "playImplementation"(libs.billing.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
 

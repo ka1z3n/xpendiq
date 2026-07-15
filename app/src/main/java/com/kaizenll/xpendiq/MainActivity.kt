@@ -118,6 +118,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Re-check the real subscription state on every foreground (catches renewals, cancellations,
+        // refunds, and purchases completed on another device). No-op on the free flavor.
+        (application as XpendiqApplication).billing.refreshPurchases()
         // Relock only if we were backgrounded past the grace window; brief switches stay unlocked.
         AppLock.onForeground()
         if (shouldLock()) {

@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Subscription screen — also the "what you tracked" trial summary. Reached from the Home trial
- * banner and the "subscribe to edit" prompts. The Subscribe button is a stub until Google Play
- * Billing lands (step F): debug builds simulate a purchase so the unlock flow is testable.
+ * banner and the "subscribe to edit" prompts. Subscribe launches Play Billing on the `play` flavor;
+ * where there's no billing backend, debug builds simulate a purchase so the unlock flow is testable.
  */
 class PaywallFragment : Fragment(R.layout.fragment_paywall) {
 
@@ -68,8 +68,16 @@ class PaywallFragment : Fragment(R.layout.fragment_paywall) {
     }
 
     private fun onSubscribe(app: XpendiqApplication) {
+        if (app.billing.isAvailable) {
+            // Real Play Billing. On success the PurchasesUpdatedListener flips the flag, refreshes
+            // entitlement, and the app-scope collector unlocks the hidden rows; the Home banner /
+            // gating update when we return. Nothing to do here but launch the flow.
+            app.billing.launchPurchase(requireActivity())
+            return
+        }
+        // No billing backend (free flavor, or a debug build with no Play connection): simulate a
+        // purchase so the unlock-all + read-only-lift flow stays testable.
         if (BuildConfig.DEBUG) {
-            // Simulate a purchase so the unlock-all + read-only-lift flow can be verified.
             Preferences.setSubscribed(requireContext(), true)
             app.entitlement.refresh()
             view?.let { Snackbar.make(it, R.string.paywall_subscribed_toast, Snackbar.LENGTH_SHORT).show() }

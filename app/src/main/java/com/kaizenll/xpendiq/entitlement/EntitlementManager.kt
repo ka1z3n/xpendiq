@@ -1,6 +1,7 @@
 package com.kaizenll.xpendiq.entitlement
 
 import android.content.Context
+import com.kaizenll.xpendiq.BuildConfig
 import com.kaizenll.xpendiq.util.Preferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,9 @@ class EntitlementManager(private val context: Context) {
     fun isEntitled(): Boolean = compute(System.currentTimeMillis()).isEntitled
 
     private fun compute(now: Long): EntitlementState {
+        // The off-Play `full` flavor can't take payment (sideloaded), so it's free forever — no
+        // trial clock, no paywall, no locking. Only the `play` flavor runs the trial/subscription.
+        if (!BuildConfig.BILLING_ENABLED) return EntitlementState.Subscribed
         if (Preferences.isSubscribed(context)) return EntitlementState.Subscribed
         val start = Preferences.ensureTrialStart(context, now)
         val daysElapsed = ((now - start) / DAY_MILLIS).toInt()

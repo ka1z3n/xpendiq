@@ -7,6 +7,8 @@ import com.kaizenll.xpendiq.data.db.HashRehashMigration
 import com.kaizenll.xpendiq.data.db.SeedMigration
 import com.kaizenll.xpendiq.data.db.XpendiqDatabase
 import com.kaizenll.xpendiq.data.db.StaleTransactionCleanup
+import com.kaizenll.xpendiq.billing.BillingFactory
+import com.kaizenll.xpendiq.billing.BillingGateway
 import com.kaizenll.xpendiq.data.repo.CategoryRepository
 import com.kaizenll.xpendiq.data.repo.TransactionRepository
 import com.kaizenll.xpendiq.entitlement.EntitlementManager
@@ -26,6 +28,9 @@ class XpendiqApplication : Application() {
 
     /** Trial / subscription state. Drives read-only gating and the lock flag on new captures. */
     val entitlement: EntitlementManager by lazy { EntitlementManager(this) }
+
+    /** Purchase surface. Real Play Billing on the `play` flavor; a no-op on the free `full` flavor. */
+    val billing: BillingGateway by lazy { BillingFactory.create(this) }
 
     val categorizer: Categorizer by lazy {
         Categorizer(database.categoryDao(), database.merchantRuleDao())
@@ -72,5 +77,8 @@ class XpendiqApplication : Application() {
         // Nudge the user ~5 days before the trial ends (no-op once subscribed / already past day 25).
         com.kaizenll.xpendiq.work.TrialReminder.ensureChannel(this)
         com.kaizenll.xpendiq.work.TrialReminder.schedule(this)
+        // Connect billing and reconcile any existing subscription into the entitlement flag (no-op
+        // on the free flavor). This also restores a purchase after reinstall / on a new device.
+        billing.start()
     }
 }
