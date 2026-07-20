@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -65,6 +67,20 @@ class PaywallFragment : Fragment(R.layout.fragment_paywall) {
         view.findViewById<MaterialButton>(R.id.not_now_btn).setOnClickListener {
             findNavController().navigateUp()
         }
+
+        // Dismiss the paywall once the purchase lands. Real Play Billing flips the flag and refreshes
+        // entitlement asynchronously (from the PurchasesUpdatedListener), so the click handler can't
+        // navigate — we react to the state instead. We only reach the paywall while InTrial or
+        // Expired, so a transition to Subscribed always means a purchase just completed.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                app.entitlement.state.collect { state ->
+                    if (state is EntitlementState.Subscribed) {
+                        findNavController().navigateUp()
+                    }
+                }
+            }
+        }
     }
 
     private fun onSubscribe(app: XpendiqApplication) {
@@ -78,10 +94,9 @@ class PaywallFragment : Fragment(R.layout.fragment_paywall) {
         // No billing backend (free flavor, or a debug build with no Play connection): simulate a
         // purchase so the unlock-all + read-only-lift flow stays testable.
         if (BuildConfig.DEBUG) {
+            // refresh() emits Subscribed, and the entitlement collector navigates up for us.
             Preferences.setSubscribed(requireContext(), true)
             app.entitlement.refresh()
-            view?.let { Snackbar.make(it, R.string.paywall_subscribed_toast, Snackbar.LENGTH_SHORT).show() }
-            findNavController().navigateUp()
         } else {
             view?.let { Snackbar.make(it, R.string.paywall_billing_soon, Snackbar.LENGTH_LONG).show() }
         }
